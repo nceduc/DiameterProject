@@ -47,11 +47,33 @@ public class LiveBalance {
             e.printStackTrace();
         }
         Request request = session.createRequest(7, ApplicationId.createByAuthAppId(33333),"exchange.example.org","127.0.0.1"); //формируем запрос
-        request.getAvps().addAvp(1, clientID.getBytes()); //положили номер в AVP в запрос
+        request.getAvps().addAvp(1, clientID.getBytes()); //положили номер в AVP
 
 
         try {
-            session.send(request, new GetAnswer()); //посылаем диаметровый запрос
+            session.send(request, new EventListener<Request, Answer>() {  //посылаем диаметровый запрос
+                @Override
+                public void receivedSuccessMessage(Request request, Answer answer) {
+                    System.out.println("Answer received");
+                    //этот код сработает, когда придет ответ
+
+                    try {
+                        balance = answer.getAvps().getAvp(2).getUTF8String();
+                    } catch (AvpDataException e) {
+                        e.printStackTrace();
+                    }
+
+                    //ответ с балансом пришел, возобновляем работу потока
+                    synchronized(syncObj){
+                        syncObj.notify();
+                    }
+                }
+
+                @Override
+                public void timeoutExpired(Request request) {
+
+                }
+            });
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -78,32 +100,6 @@ public class LiveBalance {
         }
         return clientID;
     }
-
-
-    //внутренний класс для парсинга ответа на запрос
-    private class GetAnswer implements EventListener<Request, Answer>{
-        @Override
-        public void receivedSuccessMessage(Request request, Answer answer) {
-            //этот код сработает, когда придет ответ
-            System.out.println("Answer received");
-
-            try {
-                balance = answer.getAvps().getAvp(2).getUTF8String();
-            } catch (AvpDataException e) {
-                e.printStackTrace();
-            }
-
-            //ответ пришел, возобновляем работу потока
-            synchronized(syncObj){
-                syncObj.notify();
-            }
-        }
-        @Override
-        public void timeoutExpired(Request request) {
-
-        }
-    }
-
 
 }
 

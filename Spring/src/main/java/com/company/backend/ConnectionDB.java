@@ -21,6 +21,8 @@ public class ConnectionDB {
             e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
         }
         return connection;
     }

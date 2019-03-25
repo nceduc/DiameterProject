@@ -1,36 +1,12 @@
 package com.company.OCS;
-import com.company.backend.ControlRequest;
-import org.apache.log4j.Logger;
+
 import org.jdiameter.api.*;
 import org.jdiameter.server.impl.StackImpl;
 import org.jdiameter.server.impl.helpers.XMLConfiguration;
 
 
 public class JDiameterServer {
-
-    //for logging ************************
-    private static final Logger LOG = Logger.getLogger(ControlRequest.class);
-//    static{
-//        InputStream inStreamLog4j;
-//        try {
-//            inStreamLog4j = new FileInputStream("log4j.properties");
-//            Properties propertiesLog4j = new Properties();
-//            try {
-//                propertiesLog4j.load(inStreamLog4j);
-//                PropertyConfigurator.configure(propertiesLog4j);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            LOG.debug("log4j configured");
-//        } catch (FileNotFoundException e1) {
-//            e1.printStackTrace();
-//        }
-//    }
-
-
     public void startServer(){
-        //launch server
         StackImpl server = new StackImpl();
 
         try{
@@ -38,11 +14,11 @@ public class JDiameterServer {
 
             server.unwrap(Network.class).addNetworkReqListener(new NetworkReqListener() {
                 public Answer processRequest(Request request) {
+                    System.out.println("Request received");
+                    //этот метод вызывается при диаметровом запросе
                     String clientID = null;
                     byte[] balanceBytes;
                     Answer answer;
-
-                    System.out.println("Request received");
 
 
                     //парсим запрос
@@ -59,6 +35,7 @@ public class JDiameterServer {
                     return answer;
                 }
             }, ApplicationId.createByAuthAppId(33333));
+
             server.start();
 
         }catch (IllegalDiameterStateException e) {
@@ -77,12 +54,20 @@ public class JDiameterServer {
 
 
 
+
+
+
+
 int bal = 0;
     private String getBalanceForUser(String clientID){
         bal++;
         String balance = bal+"";
-        //query to Cassandra
 
+        //query to Cassandra
+        //пока что без API между касандрой и этим кодом
+        //касандру еще не добавили
+
+        //именно здесь будет осуществляться получение баланса
 
         return balance;
     }

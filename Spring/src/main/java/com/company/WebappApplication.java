@@ -9,11 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class WebappApplication {
 
 	public static void main(String[] args) {
-		JDiameterServer jDiameterServer = new JDiameterServer();
-		JDiameterClient jDiameterClient = new JDiameterClient();
-		jDiameterServer.startServer();
-		jDiameterClient.startClient();
-
+		new JDiameterServer().startServer();
+		new JDiameterClient().startClient();
 
 		SpringApplication.run(WebappApplication.class, args);
 	}
