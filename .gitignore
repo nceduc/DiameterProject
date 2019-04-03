@@ -1,6 +1,5 @@
 # Lines starting with '#' are considered comments.
-target
-*.idea
-*.[idea]
+target/
+.idea/
 *.iml
-*.[iml]
+
