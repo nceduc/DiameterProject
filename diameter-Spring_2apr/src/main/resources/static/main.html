@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <title>Account</title>
+</head>
+<body>
+<p>This is main page. Here will be output balance.</p>
+
+<span>Balance: </span><span id="result" style="color:green;">loading...</span><br>
+
+<a style="margin-top:20px;" href="logout">Logout</a>
+
+<script type="text/javascript">
+    var results = document.cookie.match ( '(^|;) ?clientID=([^;]*)(;|$)' );
+    var clientID = unescape(results[2]);
+    function getBalance(){
+        $.get({
+            url: "balance/"+clientID,
+            dataType:"json",
+            success: function (result) {
+                $("#result").html(result["balance"]);
+            }
+        });
+    }
+    getBalance(); //вызвали первый раз при загрузке страницы
+    setInterval(getBalance, 5000);
+
+
+</script>
+</body>
+</html>
