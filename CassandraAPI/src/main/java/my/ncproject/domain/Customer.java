@@ -41,7 +41,7 @@ public class Customer implements Serializable{
         return "{" +
                 "number='" + number + '\'' +
                 ", balance='" + balance + '\'' +
-                '}';
+                "}";
     }
 
 

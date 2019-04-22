@@ -1,6 +1,7 @@
 package my.ncproject.controllers;
 
 import my.ncproject.domain.Customer;
+import my.ncproject.domain.DeltaBalance;
 import my.ncproject.exceptionhandler.exceptions.*;
 import my.ncproject.services.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +60,7 @@ public class CustomerController {
     @RequestMapping(value = "/customers/update/{number}", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public String updateBalance(@PathVariable String number, @RequestBody Customer updateBalance) {
+    public String updateBalance(@PathVariable String number, @RequestBody DeltaBalance updateBalance) {
         Optional<Customer> checkCustomer = customerService.getByNumber(number);
         if (!checkCustomer.isPresent()) {
             throw new CustomerNotExistException();
