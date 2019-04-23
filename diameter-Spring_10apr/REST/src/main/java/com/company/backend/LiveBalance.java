@@ -28,21 +28,5 @@ public class LiveBalance {
         return jsonObject.toJSONString();
     }
 
-
-
-
-
-
-//    private String parseJSON(String json){
-//        String clientID = null;
-//        try {
-//            JSONObject objectJson = (JSONObject) new JSONParser().parse(json);
-//            clientID = objectJson.get("clientID").toString();
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
-//        return clientID;
-//    }
-
 }
 

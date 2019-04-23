@@ -1,5 +1,6 @@
 package com.company.backend;
 
+import org.apache.log4j.Logger;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +14,7 @@ import java.sql.*;
 @RequestMapping("login")
 public class Authentication {
 
+    private static final Logger logger = Logger.getLogger(Authentication.class);
     private Connection connection;
 
     //надо добавить шифрование паролей либо вообще их убрать
@@ -49,8 +51,7 @@ public class Authentication {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(select);
         }catch (SQLException ex) {
-            ex.printStackTrace();
-            System.out.println("Execute query failed");
+            logger.error("Execute into SQLite was failed [Authentication.class]\n" + ex.getSQLState());
         }
 
         //получаем запросы из БД
@@ -60,14 +61,15 @@ public class Authentication {
                 String passwordFromDB = resultSet.getString("password");
                 if(clientIDFromDB.equals(clientID) && passwordFromDB.equals(password)){
                     isLogin = true; //авторизуем
+                    logger.info("Successful login a user");
                 }
             } else{
                 signup(clientID, password); //регистрируем
                 isLogin = true;
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | NullPointerException e) {
+            logger.error("ResultSet not contains clientID or password [Authentication.class]" + e.getMessage());
         }finally {
             try {
                 if(statement != null)
@@ -95,8 +97,9 @@ public class Authentication {
             prSt.setString(1, clientID.toUpperCase());
             prSt.setString(2, password.toUpperCase());
             prSt.executeUpdate();
+            logger.info("Successful signup a new user");
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Signup was failed. Insert error." + e.getSQLState());
         } finally {
             try {
                 if(prSt != null)

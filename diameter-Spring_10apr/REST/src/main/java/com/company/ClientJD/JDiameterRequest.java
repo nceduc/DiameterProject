@@ -1,15 +1,21 @@
 package com.company.ClientJD;
 
-import com.company.ServerJD.JDiameterListener;
+
 import org.jdiameter.api.*;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import org.apache.log4j.Logger;
 
 
 public class JDiameterRequest {
 
+    private static final Logger logger = Logger.getLogger(JDiameterRequest.class);
+
     public String getBalance(String clientID){
         Session session = getSession();
         Request request = formDiameterRequest(session, clientID);
-        String balance = sendDiameterRequest(request, session, clientID);
+        String balance = sendDiameterRequest(request, session);
 
         return balance;
     }
@@ -20,7 +26,7 @@ public class JDiameterRequest {
         try {
             session = JDiameterConnectServer.connectionSession.getNewSession();
         } catch (InternalException e) {
-            e.printStackTrace();
+            logger.error("Connection with diameter server was failed [JDiameterRequest.class]\n" + e.getMessage());
         }
         return session;
     }
@@ -30,32 +36,25 @@ public class JDiameterRequest {
         Request request = null;
 
         if(session != null){
-            request = session.createRequest(7, ApplicationId.createByAuthAppId(33333),"exchange.example.org","127.0.0.1"); //формируем запрос
-            request.getAvps().addAvp(1, clientID.getBytes()); //положили клиентский ID в AVP
+            request = session.createRequest(3000, ApplicationId.createByAuthAppId(33333),"exchange.example.org","127.0.0.1"); //формируем запрос
+            request.getAvps().addAvp(Avp.USER_IDENTITY, clientID.getBytes()); //положили клиентский ID в Avp.USER_IDENTITY
         }
         return request;
     }
 
 
-    private String sendDiameterRequest(Request request, Session session, String clientID){
+    private String sendDiameterRequest(Request request, Session session){
         String balance = null;
+        Future<Message> response;
 
         try {
-            session.send(request); //послали диаметровый запрос
-            System.out.println("запрос ушел");
+            response = session.send(request);
+            balance = response.get().getAvps().getAvp(Avp.CHECK_BALANCE_RESULT).getUTF8String(); //получаем баланс
 
-            balance = JDiameterListener.mapBalance.get(clientID); //если баланс не будет найден, то balance = null;
-
-        } catch (InternalException e) {
-            e.printStackTrace();
-        } catch (IllegalDiameterStateException e) {
-            e.printStackTrace();
-        } catch (RouteException e) {
-            e.printStackTrace();
-        } catch (OverloadException e) {
-            e.printStackTrace();
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (ExecutionException | IllegalDiameterStateException | InterruptedException | OverloadException | AvpDataException | RouteException | InternalException e) {
+            logger.error("Send diameter request was failed [JDiameterRequest.class]\n" + e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getStackTrace());
         }
 
 
