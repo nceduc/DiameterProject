@@ -42,23 +42,25 @@ public class JDiameterRequest {
         return request;
     }
 
-
     private String sendDiameterRequest(Request request, Session session){
-        String balance = null;
-        Future<Message> response;
+        AvpSet avpSet = null;
+        String answer = null;
+        Future<Message> response = null;
 
         try {
-            response = session.send(request);
-            balance = response.get().getAvps().getAvp(Avp.CHECK_BALANCE_RESULT).getUTF8String(); //получаем баланс
+            response = session.send(request); //послыаем запрос
+            avpSet = response.get().getAvps();
+            answer = avpSet.getAvp(Avp.CHECK_BALANCE_RESULT).getUTF8String(); //получаем баланс
 
-        } catch (ExecutionException | IllegalDiameterStateException | InterruptedException | OverloadException | AvpDataException | RouteException | InternalException e) {
+        } catch (InternalException | IllegalDiameterStateException | RouteException | OverloadException e) {
             logger.error("Send diameter request was failed [JDiameterRequest.class]\n" + e.getMessage());
-        } catch (Exception e) {
-            logger.error(e.getStackTrace());
+
+        } catch (AvpDataException | InterruptedException | ExecutionException | NullPointerException e){
+            logger.error("Balance was not received [JDiameterRequest.class]\n" + e.getMessage());
+
         }
 
-
-        return balance;
+        return answer;
     }
 
 

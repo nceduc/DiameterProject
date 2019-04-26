@@ -1,5 +1,6 @@
 package com.company.ServerJD;
 
+import com.company.Kafka.ClientData;
 import com.company.Kafka.KafkaProcessor;
 import com.company.Kafka.KafkaRequest;
 import org.apache.log4j.Logger;
@@ -32,9 +33,11 @@ public class Router implements NetworkReqListener {
         int codeDiameterRequest;
         String appName;
         String requestName;
+        ClientData clientData;
         String clientID = null;
         String balance = null;
         Answer answer = null;
+        String message = null;
 
 
         codeDiameterAppId = request.getApplicationId(); //получаем код диаметрового приложения
@@ -46,28 +49,42 @@ public class Router implements NetworkReqListener {
 
             try {
                 clientID = avpSet.getAvp(Avp.USER_IDENTITY).getUTF8String(); //получаем clientID для запроса баланса
+                System.out.println(clientID);
+                kafkaRequest.writeRecordKafka(clientID); //пишем запись в кафку для получения баланса
             } catch (AvpDataException e) {
                 logger.error("AVP is invalid [Router.class]\n" + e.getMessage());
             } catch (NullPointerException e) {
                 logger.error("ClientID was not received [Router.class]\n" + e.getMessage());
             }
 
-            System.out.println(clientID);
-            kafkaRequest.writeRecordKafka(clientID); //пишем запись в кафку для получения баланса
 
-
-            try{
-                balance = KafkaProcessor.mapBalance.get(clientID); //получили баланс
-                answer = request.createAnswer(); //начинаем формировать ответ для BE
-                answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
-            }catch (NullPointerException e){
-                logger.error("Balance was not received [Router.class\n" + e.getMessage());
+            while(true){
+                //сначала получили данные о пользователе из Map, затем получили баланс из этих данных
+                clientData = KafkaProcessor.mapData.get(clientID);
+                if(clientData == null){
+                    //если он null, то отправляем запрос еще раз
+                    kafkaRequest.writeRecordKafka(clientID);
+                }else{
+                    balance = clientData.getBalance();
+                    break;
+                }
             }
+
+            answer = request.createAnswer(); //начинаем формировать ответ для BE
+            answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+
+
+
 
         }else{
             //this is undefined request
             appName = getAppName(codeDiameterAppId);
             requestName = getRequestName(codeDiameterRequest);
+
+            //формируем ответ с информацией об ошибке
+            answer = request.createAnswer();
+            message = "This type request ["+requestName+"] is not supported by the server";
+            answer.getAvps().addAvp(Avp.ERROR_MESSAGE, message.getBytes()); //возвращаем диаметровый ответ с сообщением об ошибке
             logger.warn("Such type request is not supported by this diameter-server [ AppName:"+appName+" RequestName:"+requestName+" ]");
         }
 

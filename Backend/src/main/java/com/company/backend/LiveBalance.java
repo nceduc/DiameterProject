@@ -14,16 +14,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping(value = "balance/{clientID}", method = GET)
 public class LiveBalance {
 
+    private JDiameterRequest request = new JDiameterRequest(); //создали экземпляр класса для отправки диаметровых реквестов ???
+
     @GetMapping
     public String balance(@PathVariable String clientID) {
+        String balance = null;
+        JSONObject jsonObject = null;
 
-        String balance = new JDiameterRequest().getBalance(clientID);
+        balance = request.getBalance(clientID);
+
 
         //формируем ответ и возвращаем баланс
-        JSONObject jsonObject = new JSONObject();
-        if(balance == null){
-            balance = "loading...";
-        }
+        jsonObject = new JSONObject();
         jsonObject.put("balance", balance);
         return jsonObject.toJSONString();
     }
