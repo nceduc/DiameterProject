@@ -57,10 +57,10 @@ public class KafkaProcessor {
 
 
     private void writeRecordKafka(String clientID, String balance){
-        String topicName = "responseBalance";
-        Properties props;
-        KafkaProducer producer;
-        ProducerRecord producerRecord;
+        final String topicName = "responseBalance";
+        Properties props = null;
+        KafkaProducer producer = null;
+        ProducerRecord producerRecord = null;
 
 
         // конфигурация

@@ -18,9 +18,9 @@ public class KafkaProcessor {
 
 
    public void start(){
-       String clientID;
-       String balance;
-       ClientData clientData;
+       String clientID = null;
+       String balance = null;
+       ClientData clientData = null;
        KafkaConsumer<String, String> consumer = new KafkaListener().getConsumer(); //получаем подписчика для получения баланса
 
        while (true) { //читаем топик responseBalance

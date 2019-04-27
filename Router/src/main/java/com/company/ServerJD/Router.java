@@ -32,14 +32,14 @@ public class Router implements NetworkReqListener {
         System.out.println("Запрос пришел с BE");
         //этот метод вызывается при диаметровом запросе
         AvpSet avpSet = null;
-        long codeDiameterAppId;
-        int codeDiameterRequest;
+        long codeDiameterAppId = 0L;
+        int codeDiameterRequest = 0;
         int countRequest = 0;
         final int LIMIT_REQUEST = 20;
-        String appName;
-        String requestName;
-        ClientData clientData;
-        Date date;
+        String appName = null;
+        String requestName = null;
+        ClientData clientData = null;
+        Date date = null;
         String clientID = null;
         String balance = null;
         Answer answer = null;
@@ -68,6 +68,7 @@ public class Router implements NetworkReqListener {
 
             if(kafkaRequest.writeRecordKafka(clientID)){
                 //fixed bug with the first request from user
+                //logic of indicating failure apps
                 date = new Date();
                 while(true){
                     clientData = KafkaProcessor.mapData.get(clientID); //получаем по данные из Map
@@ -118,7 +119,7 @@ public class Router implements NetworkReqListener {
 
 
     private String getAppName(long codeDiameterAppId){
-        String appName;
+        String appName = null;
 
         switch ((int) codeDiameterAppId) {
             case (1) : {
@@ -156,8 +157,7 @@ public class Router implements NetworkReqListener {
     }
 
     private String getRequestName(int codeDiameterRequest){
-        String requestName;
-        requestName = dictionary.get(codeDiameterRequest+"");
+        String requestName = dictionary.get(codeDiameterRequest+"");
         return requestName;
     }
 

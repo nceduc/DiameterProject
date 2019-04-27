@@ -15,8 +15,8 @@ class KafkaListener {
         final String topicName = "requestBalance";
         final String groupId = "group01";
         final String clientId = "client01";
-        KafkaConsumer<String, String> consumer;
-        Properties props;
+        KafkaConsumer<String, String> consumer = null;
+        Properties props = null;
 
 
         //конфигурация

@@ -16,11 +16,12 @@ public class KafkaRequest {
 
     public boolean writeRecordKafka(String clientID){
         final String topicName = "requestBalance";
+        final int COUNT_TRYING = 3;
         boolean result = false;
-        Properties props;
-        KafkaProducer producer;
-        ProducerRecord producerRecord;
-        Future<RecordMetadata> response;
+        Properties props = null;
+        KafkaProducer producer = null;
+        ProducerRecord producerRecord = null;
+        Future<RecordMetadata> response = null;
 
 
         //конфигурация
@@ -38,7 +39,7 @@ public class KafkaRequest {
         producerRecord = new ProducerRecord(topicName, clientID);
 
 
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < COUNT_TRYING; i++){
             response = producer.send(producerRecord); //пишем запись в кафку
             try {
                 if(response.get().hasOffset()){

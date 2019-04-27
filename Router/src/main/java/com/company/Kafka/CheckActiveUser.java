@@ -19,8 +19,8 @@ public class CheckActiveUser extends TimerTask{
     public void run() {
         Iterator<Map.Entry<String, ClientData>> it = KafkaProcessor.mapData.entrySet().iterator();
         Date date = new Date();
-        String clientID;
-        long time;
+        String clientID = null;
+        long time = 0L;
 
 
         while (it.hasNext()) {

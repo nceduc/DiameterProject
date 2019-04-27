@@ -23,7 +23,7 @@ public class JDiameterRequest {
         Request request = null;
         String balance = null;
 
-        if (!isDiameterServerFail && !isKafkaFail && !isCassandraFail){
+        if (!isDiameterServerFail && !isKafkaFail && !isCassandraFail){ //если все три приложения ОК
             session = getSession();
 
             if(session == null){

@@ -14,8 +14,8 @@ public class CassandraConnector {
     private static final Logger logger = Logger.getLogger(CassandraConnector.class);
 
     public Session connect() {
-        Cluster cluster;
-        Session session;
+        Cluster cluster = null;
+        Session session = null;
         final String node = "localhost";
         final int port = 9042;
         cluster = Cluster.builder().addContactPoint(node).withPort(port).build();
