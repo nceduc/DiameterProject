@@ -11,6 +11,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.log4j.Logger;
 
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.Properties;
 
 public class KafkaProcessor {
@@ -26,7 +27,8 @@ public class KafkaProcessor {
 
         while (true) { //читаем топик requestBalance
             ConsumerRecords<String, String> records = consumer.poll(1000);
-            if(records.count() > 2000){
+
+            if(records.count() > 1000){
                 for (ConsumerRecord<String, String> record : records){
                     //если записей в кафке слишком много
                     System.out.println(records.count());

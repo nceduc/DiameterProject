@@ -26,6 +26,7 @@ class KafkaListener {
         props.put("client.id", clientId);
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
+        props.put("max.poll.records", 3000);
 
         //десериализуем
         props.put("key.deserializer",

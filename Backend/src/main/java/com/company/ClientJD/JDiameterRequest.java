@@ -15,6 +15,7 @@ public class JDiameterRequest {
     //флаги для идентификации неработающих приложений
     private static boolean isDiameterServerFail = false;
     private static boolean isKafkaFail = false;
+    private static boolean isCassandraFail = false;
 
 
     public String getBalance(String clientID){
@@ -22,7 +23,7 @@ public class JDiameterRequest {
         Request request = null;
         String balance = null;
 
-        if (!isDiameterServerFail && !isKafkaFail){
+        if (!isDiameterServerFail && !isKafkaFail && !isCassandraFail){
             session = getSession();
 
             if(session == null){
@@ -85,6 +86,11 @@ public class JDiameterRequest {
 
                     if(avp.getInteger32() == ErrorCode.ERROR_TYPE_REQUEST){
                         logger.error("This client sends wrong type Diameter-requests.\n " + avpSet.getAvp(Avp.ERROR_MESSAGE).getUTF8String());
+                    }
+
+                    if(avp.getInteger32() == ErrorCode.CASSANDRA_FAILED){
+                        logger.error("App 'Balance' or Cassandra failed [Backend]");
+                        isCassandraFail = true;
                     }
 
                 }

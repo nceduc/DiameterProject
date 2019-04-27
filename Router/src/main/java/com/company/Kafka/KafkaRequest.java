@@ -40,7 +40,6 @@ public class KafkaRequest {
 
         for(int i = 0; i < 3; i++){
             response = producer.send(producerRecord); //пишем запись в кафку
-
             try {
                 if(response.get().hasOffset()){
                     result = true;

@@ -35,9 +35,11 @@ public class Router implements NetworkReqListener {
         long codeDiameterAppId;
         int codeDiameterRequest;
         int countRequest = 0;
+        final int LIMIT_REQUEST = 20;
         String appName;
         String requestName;
         ClientData clientData;
+        Date date;
         String clientID = null;
         String balance = null;
         Answer answer = null;
@@ -66,16 +68,24 @@ public class Router implements NetworkReqListener {
 
             if(kafkaRequest.writeRecordKafka(clientID)){
                 //fixed bug with the first request from user
-
+                date = new Date();
                 while(true){
-                    clientData = KafkaProcessor.mapData.get(clientID);
-                    if(clientData == null){
-                        //если null, то пишем запись еще раз
-                        kafkaRequest.writeRecordKafka(clientID);
-
-                    }else {
-                        balance = clientData.getBalance();
-                        answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                    clientData = KafkaProcessor.mapData.get(clientID); //получаем по данные из Map
+                    countRequest++;
+                    if(countRequest < LIMIT_REQUEST){
+                        if(clientData == null ){
+                            //если null, то пишем запись еще раз
+                            kafkaRequest.writeRecordKafka(clientID);
+                        }else if((date.getTime() - clientData.getDate().getTime()) < (60000*5)){
+                            balance = clientData.getBalance();
+                            answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                            break;
+                        }
+                    }else{
+                        //если запросов в Balance отправлено слишком много, а баланс все еще не пришел, то
+                        //приложение Balance не работает
+                        answer.getAvps().addAvp(Avp.RESULT_CODE, -3); //Cassandra(or app Balance) failed
+                        logger.error("App 'Balance' failed. Need to reboot! [Router.class]");
                         break;
                     }
                 }
@@ -84,9 +94,6 @@ public class Router implements NetworkReqListener {
                 answer.getAvps().addAvp(Avp.RESULT_CODE, -2); //Kafka failed
                 logger.error("Kafka failed. Need to reboot! [Router.class]");
             }
-
-
-
 
 
         }else{
