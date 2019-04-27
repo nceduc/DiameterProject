@@ -13,10 +13,11 @@ import java.util.Map;
 
 public class KafkaProcessor {
 
+
    public static Map<String, ClientData> mapData = new HashMap<>();
 
-   public void start(){
 
+   public void start(){
        String clientID;
        String balance;
        ClientData clientData;

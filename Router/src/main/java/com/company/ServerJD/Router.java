@@ -6,6 +6,7 @@ import com.company.Kafka.KafkaRequest;
 import org.apache.log4j.Logger;
 import org.jdiameter.api.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 public class Router implements NetworkReqListener {
@@ -13,7 +14,8 @@ public class Router implements NetworkReqListener {
     private static final Logger logger = Logger.getLogger(Router.class);
 
     private KafkaRequest kafkaRequest = new KafkaRequest(); //для записей в кафку
-    private static Map<String, String> dictionary = new HashMap<String, String>();
+    private static Map<String, String> dictionary = new HashMap<>();
+
 
     static {
         //init dictionary
@@ -29,8 +31,10 @@ public class Router implements NetworkReqListener {
 
         System.out.println("Запрос пришел с BE");
         //этот метод вызывается при диаметровом запросе
+        AvpSet avpSet = null;
         long codeDiameterAppId;
         int codeDiameterRequest;
+        int countRequest = 0;
         String appName;
         String requestName;
         ClientData clientData;
@@ -45,12 +49,13 @@ public class Router implements NetworkReqListener {
 
         if(codeDiameterRequest == CodeRequest.GET_BALANCE_REQUEST){
             //this is Get-Balance-Request
-            AvpSet avpSet = request.getAvps(); //получаем все Avp реквеста
+            avpSet = request.getAvps(); //получаем все Avp реквеста
+            answer = request.createAnswer(); //начинаем формировать ответ для BE
+
 
             try {
                 clientID = avpSet.getAvp(Avp.USER_IDENTITY).getUTF8String(); //получаем clientID для запроса баланса
                 System.out.println(clientID);
-                kafkaRequest.writeRecordKafka(clientID); //пишем запись в кафку для получения баланса
             } catch (AvpDataException e) {
                 logger.error("AVP is invalid [Router.class]\n" + e.getMessage());
             } catch (NullPointerException e) {
@@ -58,20 +63,28 @@ public class Router implements NetworkReqListener {
             }
 
 
-            while(true){
-                //сначала получили данные о пользователе из Map, затем получили баланс из этих данных
-                clientData = KafkaProcessor.mapData.get(clientID);
-                if(clientData == null){
-                    //если он null, то отправляем запрос еще раз
-                    kafkaRequest.writeRecordKafka(clientID);
-                }else{
-                    balance = clientData.getBalance();
-                    break;
+
+            if(kafkaRequest.writeRecordKafka(clientID)){
+                //fixed bug with the first request from user
+
+                while(true){
+                    clientData = KafkaProcessor.mapData.get(clientID);
+                    if(clientData == null){
+                        //если null, то пишем запись еще раз
+                        kafkaRequest.writeRecordKafka(clientID);
+
+                    }else {
+                        balance = clientData.getBalance();
+                        answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                        break;
+                    }
                 }
+            }else {
+                //если кафка не работает
+                answer.getAvps().addAvp(Avp.RESULT_CODE, -2); //Kafka failed
+                logger.error("Kafka failed. Need to reboot! [Router.class]");
             }
 
-            answer = request.createAnswer(); //начинаем формировать ответ для BE
-            answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
 
 
 
@@ -83,7 +96,9 @@ public class Router implements NetworkReqListener {
 
             //формируем ответ с информацией об ошибке
             answer = request.createAnswer();
+
             message = "This type request ["+requestName+"] is not supported by the server";
+            answer.getAvps().addAvp(Avp.RESULT_CODE, -1);
             answer.getAvps().addAvp(Avp.ERROR_MESSAGE, message.getBytes()); //возвращаем диаметровый ответ с сообщением об ошибке
             logger.warn("Such type request is not supported by this diameter-server [ AppName:"+appName+" RequestName:"+requestName+" ]");
         }

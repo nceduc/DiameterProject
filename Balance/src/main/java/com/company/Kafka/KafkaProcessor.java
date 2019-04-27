@@ -45,7 +45,9 @@ public class KafkaProcessor {
                     }catch (NullPointerException e){
                         logger.error("Balance or clientID was not got [KafkaProcessor.class]\n" + e.getMessage());
                     }
+
                     writeRecordKafka(clientID, balance); //запись в кафку
+
                 }
             }
         }

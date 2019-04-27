@@ -23,7 +23,9 @@ public class LiveBalance {
 
         balance = request.getBalance(clientID);
 
-
+        if(balance == null){
+            balance = "loading...";
+        }
         //формируем ответ и возвращаем баланс
         jsonObject = new JSONObject();
         jsonObject.put("balance", balance);

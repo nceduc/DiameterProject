@@ -20,8 +20,6 @@ public class Balance{
         for(int i = 0; i<30; i++){
             this.update("79005091262"+i, 21.2+i);
         }
-
-
     }
 
     private String selectBalanceDB(String clientID){

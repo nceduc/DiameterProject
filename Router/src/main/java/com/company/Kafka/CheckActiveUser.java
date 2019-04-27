@@ -1,5 +1,7 @@
 package com.company.Kafka;
 
+import org.apache.log4j.Logger;
+
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,6 +12,8 @@ import java.util.TimerTask;
  * */
 
 public class CheckActiveUser extends TimerTask{
+
+    private static final Logger logger = Logger.getLogger(CheckActiveUser.class);
 
     @Override
     public void run() {
@@ -24,12 +28,12 @@ public class CheckActiveUser extends TimerTask{
 
             clientID = pair.getKey(); //получаем номер пользователя
             time = pair.getValue().getDate().getTime(); //получаем ClientData, затем Date, затем время с 1970г
-            System.out.println("check:"+clientID);
-            System.out.println(date.getTime() - time);
+            logger.info("Check user: "+clientID);
+
             if((date.getTime() - time) > (60000*60*24)){
                 it.remove();
                 //KafkaProcessor.mapData.remove(clientID); вызывает исключение из-за потокобезопасности
-                System.out.println("Deleted: "+clientID );
+                logger.info("User with number :"+clientID+" deleted from MAP");
             }
         }
 

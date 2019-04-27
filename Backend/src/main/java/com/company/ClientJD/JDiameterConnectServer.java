@@ -25,7 +25,7 @@ public class JDiameterConnectServer {
             }, ApplicationId.createByAuthAppId(33333));
             client.start(Mode.ALL_PEERS,2000,TimeUnit.MILLISECONDS); //timeout for sending request
 
-            logger.info("Client connected with diameter server [REST]");
+            logger.info("Client connected with diameter server [Backend]");
             System.out.println("\n\nConnected with server\n\n");
 
         } catch (InternalException | IllegalDiameterStateException | ApplicationAlreadyUseException e) {
