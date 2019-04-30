@@ -73,8 +73,9 @@ public class Router implements NetworkReqListener {
                 while(true){
                     clientData = KafkaProcessor.mapData.get(clientID); //получаем по данные из Map
                     countRequest++;
+                    System.out.println(countRequest);
                     if(countRequest < LIMIT_REQUEST){
-                        if(clientData == null ){
+                        if(clientData == null){
                             //если null, то пишем запись еще раз
                             kafkaRequest.writeRecordKafka(clientID);
                         }else if((date.getTime() - clientData.getDate().getTime()) < (60000*5)){
@@ -95,6 +96,7 @@ public class Router implements NetworkReqListener {
                 answer.getAvps().addAvp(Avp.RESULT_CODE, -2); //Kafka failed
                 logger.error("Kafka failed. Need to reboot! [Router.class]");
             }
+
 
 
         }else{

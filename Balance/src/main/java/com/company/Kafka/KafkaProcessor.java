@@ -29,7 +29,7 @@ public class KafkaProcessor {
             ConsumerRecords<String, String> records = consumer.poll(1000);
 
             if(records.count() > 1000){
-                for (ConsumerRecord<String, String> record : records){
+                for (ConsumerRecord<String, String> ignored : records){
                     //если записей в кафке слишком много
                     System.out.println(records.count());
                     System.out.println("Only read...");
@@ -44,12 +44,10 @@ public class KafkaProcessor {
                     try {
                         clientID = record.value(); // получаем клиентский ID
                         balance = balanceCassandra.getBalance(clientID); //получаем баланс
+                        writeRecordKafka(clientID, balance); //запись в кафку
                     }catch (NullPointerException e){
                         logger.error("Balance or clientID was not got [KafkaProcessor.class]\n" + e.getMessage());
                     }
-
-                    writeRecordKafka(clientID, balance); //запись в кафку
-
                 }
             }
         }

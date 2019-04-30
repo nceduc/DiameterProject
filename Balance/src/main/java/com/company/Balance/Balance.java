@@ -13,31 +13,42 @@ public class Balance{
     private Session session = new CassandraConnector().connect(); //соединяемся с Cassandra
 
     public String getBalance(String clientID){
-        return selectBalanceDB(clientID);
+        String balance = null;
+        try {
+            balance = selectDB(clientID);
+        }catch (NullPointerException ex){
+            logger.error("There isn't balance for the clientID [Balance.class]");
+        }
+        return balance;
     }
 
+
+
+
+    private String selectDB(String clientID){
+        Double answer = null;
+        final String query = "SELECT * from company.balance WHERE number = ?";
+        ResultSet resultSet = null;
+        Row row = null;
+        try {
+            resultSet = session.execute(query, clientID);
+            row = resultSet.one();
+            answer = row.getDouble("balance");
+        }
+        catch (InvalidQueryException e){
+            logger.error("Ошибка в select balance from Cassandra [Balance.class] " + e.getMessage());
+        }
+        return String.valueOf(answer);
+    }
+
+
+
+    //for testing
     {
         for(int i = 0; i<30; i++){
             this.update("79005091262"+i, 21.2+i);
         }
     }
-
-    private String selectBalanceDB(String clientID){
-        System.out.println(clientID);
-        Double balance = null;
-        String query = "SELECT * from company.balance WHERE number = ?";
-        try {ResultSet queryResult = session.execute(query,clientID);
-            Row ansRow = queryResult.one();
-            balance = ansRow.getDouble("balance");
-        }
-        catch (InvalidQueryException e){
-            logger.error("Ошибка в getBalance [Balance.class] " + e.getMessage());
-        }
-
-        return String.valueOf(balance);
-    }
-
-
     private void update(String number, double balance) {
         String query = "INSERT INTO company.balance (number,balance) VALUES (?, ?)";
         try {
