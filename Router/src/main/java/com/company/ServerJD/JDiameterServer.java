@@ -1,6 +1,7 @@
 package com.company.ServerJD;
 
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.*;
 import org.jdiameter.api.*;
 import org.jdiameter.server.impl.StackImpl;
 import org.jdiameter.server.impl.helpers.XMLConfiguration;
@@ -8,7 +9,7 @@ import org.jdiameter.server.impl.helpers.XMLConfiguration;
 
 public class JDiameterServer {
 
-    private static final Logger logger = Logger.getLogger(JDiameterServer.class);
+    private static final Logger logger = LogManager.getLogger(JDiameterServer.class);
 
     public void startServer(){
         StackImpl server = new StackImpl();
@@ -21,7 +22,7 @@ public class JDiameterServer {
             System.out.println("Server started");
             logger.info("Server started [Router]");
         } catch (Exception e) {
-            logger.error("Diameter server was not started [Router]\n" + e.getMessage());
+            logger.error("Diameter server was not started\n" + e.getMessage());
         }
 
 

@@ -4,21 +4,20 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static java.lang.System.out;
 
 
 public class CassandraConnector {
 
-    private static final Logger logger = Logger.getLogger(CassandraConnector.class);
+    private static final Logger logger = LogManager.getLogger(CassandraConnector.class);
 
     public Session connect() {
         Cluster cluster = null;
         Session session = null;
-        final String node = "localhost";
-        final int port = 9042;
-        cluster = Cluster.builder().addContactPoint(node).withPort(port).build();
+        cluster = Cluster.builder().addContactPoint("localhost").withPort(9042).build();
         final Metadata metadata = cluster.getMetadata();
         logger.info("Connected to cluster: %s\n" + metadata.getClusterName());
 
@@ -28,8 +27,8 @@ public class CassandraConnector {
             out.printf("Datacenter: %s; Host: %s; Rack: %s\n",
                     host.getDatacenter(), host.getAddress(), host.getRack());
         }
-        logger.info("Connected to IP Address " + node + ":" + port);
-        System.out.println("Connected to IP Address " + node + ":" + port);
+        logger.info("Connected to Cassandra");
+        System.out.println("Connected to Cassandra");
         session = cluster.connect();
         return session;
     }

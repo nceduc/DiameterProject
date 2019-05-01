@@ -1,7 +1,7 @@
 package com.company.backend;
 
-import org.apache.log4j.Logger;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,7 +9,7 @@ import java.sql.Statement;
 
 class ConnectionDB {
 
-    private static final Logger logger = Logger.getLogger(ConnectionDB.class);
+    private static final Logger logger = LogManager.getLogger(ConnectionDB.class);
 
     public Connection connect(){
         Connection connection = null;

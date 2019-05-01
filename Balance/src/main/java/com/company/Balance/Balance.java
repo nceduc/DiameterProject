@@ -4,12 +4,12 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Balance{
 
-
-    private static final Logger logger = Logger.getLogger(Balance.class);
+    private static Logger logger = LogManager.getLogger(Balance.class);
     private Session session = new CassandraConnector().connect(); //соединяемся с Cassandra
 
     public String getBalance(String clientID){
@@ -17,7 +17,7 @@ public class Balance{
         try {
             balance = selectDB(clientID);
         }catch (NullPointerException ex){
-            logger.error("There isn't balance for the clientID [Balance.class]");
+            logger.error("There isn't balance for the clientID");
         }
         return balance;
     }
@@ -36,7 +36,7 @@ public class Balance{
             answer = row.getDouble("balance");
         }
         catch (InvalidQueryException e){
-            logger.error("Ошибка в select balance from Cassandra [Balance.class] " + e.getMessage());
+            logger.error("Error select balance from Cassandra" + e.getMessage());
         }
         return String.valueOf(answer);
     }

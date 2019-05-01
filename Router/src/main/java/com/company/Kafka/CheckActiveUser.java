@@ -1,6 +1,6 @@
 package com.company.Kafka;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.*;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -13,7 +13,7 @@ import java.util.TimerTask;
 
 public class CheckActiveUser extends TimerTask{
 
-    private static final Logger logger = Logger.getLogger(CheckActiveUser.class);
+    private static final Logger logger = LogManager.getLogger(CheckActiveUser.class);
 
     @Override
     public void run() {

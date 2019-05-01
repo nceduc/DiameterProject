@@ -1,6 +1,7 @@
 package com.company.backend;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +15,7 @@ import java.sql.*;
 @RequestMapping("login")
 public class Authentication {
 
-    private static final Logger logger = Logger.getLogger(Authentication.class);
+    private static final Logger logger = LogManager.getLogger(Authentication.class);
     private Connection connection;
 
     //надо добавить шифрование паролей либо вообще их убрать
@@ -51,7 +52,7 @@ public class Authentication {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(select);
         }catch (SQLException ex) {
-            logger.error("Execute into SQLite was failed [Authentication.class]\n" + ex.getSQLState());
+            logger.error("Execute into SQLite was failed\n" + ex.getSQLState());
         }
 
         //получаем запросы из БД
@@ -69,7 +70,7 @@ public class Authentication {
             }
 
         } catch (SQLException | NullPointerException e) {
-            logger.error("ResultSet not contains clientID or password [Authentication.class]" + e.getMessage());
+            logger.error("ResultSet not contains clientID or password" + e.getMessage());
         }finally {
             try {
                 if(statement != null)

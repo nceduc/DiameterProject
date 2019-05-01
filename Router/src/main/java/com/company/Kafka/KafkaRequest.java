@@ -4,15 +4,14 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.log4j.Logger;
-
+import org.apache.logging.log4j.*;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class KafkaRequest {
 
-    private static final Logger logger = Logger.getLogger(KafkaRequest.class);
+    private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
 
     public boolean writeRecordKafka(String clientID){
         final String topicName = "requestBalance";
@@ -47,7 +46,7 @@ public class KafkaRequest {
                     break;
                 }
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("Write to Kafka error, try again... [KafkaRequest.class]\n" + e.getMessage());
+                logger.error("Write to Kafka error, try again...\n" + e.getMessage());
             }
         }
 

@@ -8,15 +8,14 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.time.Duration;
-import java.util.Iterator;
 import java.util.Properties;
 
 public class KafkaProcessor {
 
-    private static final Logger logger = Logger.getLogger(KafkaProcessor.class);
+    private static final Logger logger = LogManager.getLogger(KafkaProcessor.class);
 
     public void start(){
 
@@ -46,7 +45,7 @@ public class KafkaProcessor {
                         balance = balanceCassandra.getBalance(clientID); //получаем баланс
                         writeRecordKafka(clientID, balance); //запись в кафку
                     }catch (NullPointerException e){
-                        logger.error("Balance or clientID was not got [KafkaProcessor.class]\n" + e.getMessage());
+                        logger.error("Balance or clientID was not got\n" + e.getMessage());
                     }
                 }
             }

@@ -5,12 +5,13 @@ import org.jdiameter.api.*;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class JDiameterRequest {
     
-    private static final Logger logger = Logger.getLogger(JDiameterRequest.class);
+    private static final Logger logger = LogManager.getLogger(JDiameterRequest.class);
 
     //флаги для идентификации неработающих приложений
     private static boolean isDiameterServerFail = false;
@@ -44,7 +45,7 @@ public class JDiameterRequest {
         try {
             session = JDiameterConnectServer.connectionSession.getNewSession();
         } catch (InternalException e) {
-            logger.error("Connection with diameter server was failed or Diameter-Server failed. Need to reboot! [JDiameterConnectServer.class]\n" + e.getMessage());
+            logger.error("Connection with diameter server was failed or Diameter-Server failed. Need to reboot!\n" + e.getMessage());
         }
         return session;
     }
@@ -97,10 +98,10 @@ public class JDiameterRequest {
             }
 
         } catch (InternalException | IllegalDiameterStateException | RouteException | OverloadException e) {
-            logger.error("Send diameter request failed [JDiameterRequest.class]\n" + e.getMessage());
+            logger.error("Send diameter request failed\n" + e.getMessage());
 
         } catch (AvpDataException | InterruptedException | ExecutionException | NullPointerException e){
-            logger.error("Balance was not received [JDiameterRequest.class]\n" + e.getMessage());
+            logger.error("Balance was not received\n" + e.getMessage());
 
         }
 

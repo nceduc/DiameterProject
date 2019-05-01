@@ -3,7 +3,7 @@ package com.company.ServerJD;
 import com.company.Kafka.ClientData;
 import com.company.Kafka.KafkaProcessor;
 import com.company.Kafka.KafkaRequest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.*;
 import org.jdiameter.api.*;
 
 import java.util.Date;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 public class Router implements NetworkReqListener {
 
-    private static final Logger logger = Logger.getLogger(Router.class);
+    private static final Logger logger = LogManager.getLogger(Router.class);
 
     private KafkaRequest kafkaRequest = new KafkaRequest(); //для записей в кафку
     private static Map<String, String> dictionary = new HashMap<>();
@@ -59,9 +59,9 @@ public class Router implements NetworkReqListener {
                 clientID = avpSet.getAvp(Avp.USER_IDENTITY).getUTF8String(); //получаем clientID для запроса баланса
                 System.out.println(clientID);
             } catch (AvpDataException e) {
-                logger.error("AVP is invalid [Router.class]\n" + e.getMessage());
+                logger.error("AVP is invalid\n" + e.getMessage());
             } catch (NullPointerException e) {
-                logger.error("ClientID was not received [Router.class]\n" + e.getMessage());
+                logger.error("ClientID was not received\n" + e.getMessage());
             }
 
 
@@ -87,7 +87,7 @@ public class Router implements NetworkReqListener {
                         //если запросов в Balance отправлено слишком много, а баланс все еще не пришел, то
                         //приложение Balance не работает
                         answer.getAvps().addAvp(Avp.RESULT_CODE, -3); //Cassandra(or app Balance) failed
-                        logger.error("App 'Balance' failed. Need to reboot! [Router.class]");
+                        logger.error("App 'Balance' failed. Need to reboot!");
                         break;
                     }
                 }

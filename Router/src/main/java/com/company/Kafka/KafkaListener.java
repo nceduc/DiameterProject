@@ -1,14 +1,14 @@
 package com.company.Kafka;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.*;
 
 import java.util.Arrays;
 import java.util.Properties;
 
 class KafkaListener {
 
-    private static final Logger logger = Logger.getLogger(KafkaListener.class);
+    private static final Logger logger = LogManager.getLogger(KafkaListener.class);
 
 
     public KafkaConsumer<String, String> getConsumer() {
@@ -39,8 +39,8 @@ class KafkaListener {
         //подписываемся
         consumer.subscribe(Arrays.asList(topicName));
 
-        logger.info("Subscribed to topic=" + topicName + " [Router]");
-        System.out.println("Subscribed to topic=" + topicName);
+        logger.info("Subscribed to topic:" + topicName);
+        System.out.println("Subscribed to topic:" + topicName);
 
         return consumer;
     }
