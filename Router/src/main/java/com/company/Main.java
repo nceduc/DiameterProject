@@ -8,7 +8,9 @@ import java.util.Timer;
 
 
 public class Main {
-	public static void main(String[] args) {
+
+
+    public static void main(String[] args) {
 		Timer t = new Timer();
 		JDiameterServer jDiameterServer = new JDiameterServer();
 		KafkaProcessor kafkaProcessor = new KafkaProcessor();
@@ -18,3 +20,4 @@ public class Main {
 		kafkaProcessor.start();
 	}
 }
+

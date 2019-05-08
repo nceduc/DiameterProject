@@ -18,18 +18,12 @@ public class CassandraConnector {
         Cluster cluster = null;
         Session session = null;
         cluster = Cluster.builder().addContactPoint("localhost").withPort(9042).build();
-        final Metadata metadata = cluster.getMetadata();
-        logger.info("Connected to cluster: %s\n" + metadata.getClusterName());
-
-        for (final Host host : metadata.getAllHosts())
-        {
-            logger.info("Datacenter:"+host.getDatacenter()+" Host:"+ host.getAddress()+" Rack:"+host.getRack());
-            out.printf("Datacenter: %s; Host: %s; Rack: %s\n",
-                    host.getDatacenter(), host.getAddress(), host.getRack());
+        if (cluster.getMetadata().checkSchemaAgreement()) {
+            // schema is in agreement
+            session = cluster.connect();
+            logger.info("Connected to Cassandra");
+            System.out.println("Connected to Cassandra");
         }
-        logger.info("Connected to Cassandra");
-        System.out.println("Connected to Cassandra");
-        session = cluster.connect();
         return session;
     }
 

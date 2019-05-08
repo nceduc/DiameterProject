@@ -2,44 +2,33 @@ package com.company.ServerJD;
 
 import com.company.Kafka.ClientData;
 import com.company.Kafka.KafkaProcessor;
-import com.company.Kafka.KafkaRequest;
-import org.apache.logging.log4j.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
+import static com.company.Kafka.KafkaRequest.*;
+import static com.company.failApps.FailApps.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 public class Router implements NetworkReqListener {
 
     private static final Logger logger = LogManager.getLogger(Router.class);
 
-    private KafkaRequest kafkaRequest = new KafkaRequest(); //для записей в кафку
-    private static Map<String, String> dictionary = new HashMap<>();
-
-
     static {
         //init dictionary
-        initDictionary();
-        System.out.println("Словарь загружен");
+        InfoDiameterRequest.initDictionary();
+        System.out.println("Dictionary loaded");
         logger.info("Dictionary loaded");
     }
 
-
-
     @Override
     public Answer processRequest(Request request) {
-
-        System.out.println("Запрос пришел с BE");
+        System.out.println("\nReceived request from BE");
         //этот метод вызывается при диаметровом запросе
         AvpSet avpSet = null;
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
-        int countRequest = 0;
-        final int LIMIT_REQUEST = 20;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
-        Date date = null;
         String clientID = null;
         String balance = null;
         Answer answer = null;
@@ -66,43 +55,52 @@ public class Router implements NetworkReqListener {
 
 
 
-            if(kafkaRequest.writeRecordKafka(clientID)){
-                //fixed bug with the first request from user
-                //logic of indicating failure apps
-                date = new Date();
-                while(true){
-                    clientData = KafkaProcessor.mapData.get(clientID); //получаем по данные из Map
-                    countRequest++;
-                    System.out.println(countRequest);
-                    if(countRequest < LIMIT_REQUEST){
-                        if(clientData == null){
-                            //если null, то пишем запись еще раз
-                            kafkaRequest.writeRecordKafka(clientID);
-                        }else if((date.getTime() - clientData.getDate().getTime()) < (60000*5)){
-                            balance = clientData.getBalance();
-                            answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
-                            break;
+            if(appsRunning()){
+                if(isKafkaRunning()){
+                    while(true){
+                        if(runningCassandra(clientID)){ //доп. проверка на то, чтобы запросы не отправлялись в Кассандру, если она fail
+                            writeRecordKafka(clientID);
                         }
-                    }else{
-                        //если запросов в Balance отправлено слишком много, а баланс все еще не пришел, то
-                        //приложение Balance не работает
-                        answer.getAvps().addAvp(Avp.RESULT_CODE, -3); //Cassandra(or app Balance) failed
-                        logger.error("App 'Balance' failed. Need to reboot!");
-                        break;
+                        clientData = KafkaProcessor.mapData.get(clientID);
+                        //пишем запись в кафку до тех пор, пока не придет какое либо val
+                        if(clientData != null) {
+                            System.out.print("\n\n"+clientData.isCassandraFail()+"\n\n");
+                            if(!isReloading && clientData.isCassandraFail()){
+                                logger.error("Cassandra failed. Restart...");
+                                isCassandraFail = true;
+                                clientData.setCassandraFail(false);
+                                KafkaProcessor.mapData.put(clientID, clientData);
+                                reloadApps();
+                                break;
+                            }else {
+                                clientData.setCassandraFail(false);
+                                balance = clientData.getBalance();
+                                answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                                break;
+                            }
+                        }
                     }
+                }else {
+                    //если кафка не работает
+                    logger.error("Kafka failed. Restart...");
+                    isKafkaFail = true;
+                    reloadApps();
                 }
-            }else {
-                //если кафка не работает
-                answer.getAvps().addAvp(Avp.RESULT_CODE, -2); //Kafka failed
-                logger.error("Kafka failed. Need to reboot! [Router.class]");
+            }else{
+                //если приложения в стадии перезагрузки
+                message = "Some apps of server reloading";
+                answer.getAvps().addAvp(Avp.RESULT_CODE, -2);
+                answer.getAvps().addAvp(Avp.ERROR_MESSAGE, message.getBytes()); //возвращаем диаметровый ответ с сообщением об ошибке
+                logger.warn("Some apps of server reloading... Wait!");
             }
+
 
 
 
         }else{
             //this is undefined request
-            appName = getAppName(codeDiameterAppId);
-            requestName = getRequestName(codeDiameterRequest);
+            appName = InfoDiameterRequest.getAppName(codeDiameterAppId);
+            requestName = InfoDiameterRequest.getRequestName(codeDiameterRequest);
 
             //формируем ответ с информацией об ошибке
             answer = request.createAnswer();
@@ -114,234 +112,6 @@ public class Router implements NetworkReqListener {
         }
 
         return answer;
-    }
-
-
-
-
-
-    private String getAppName(long codeDiameterAppId){
-        String appName = null;
-
-        switch ((int) codeDiameterAppId) {
-            case (1) : {
-                appName = "Diameter Network Access Server Application";
-                break;
-            }
-
-            case (4) : {
-                appName = "Diameter Credit-Control Application";
-                break;
-            }
-
-            case (5) : {
-                appName = "Diameter Extensible Authentication Protocol Application";
-                break;
-            }
-
-            case (6) : {
-                appName = "Diameter Session Initiation Protocol Application";
-                break;
-            }
-
-            case (33333) : {
-                appName = "Diameter Control Balance Application";
-                break;
-            }
-
-            default : {
-                appName = "Undefined Application";
-                break;
-            }
-        }
-
-        return appName;
-    }
-
-    private String getRequestName(int codeDiameterRequest){
-        String requestName = dictionary.get(codeDiameterRequest+"");
-        return requestName;
-    }
-
-    private static void initDictionary(){
-        //commandCode : nameRequest
-
-        dictionary.put("272", "Credit-Control-Request");
-        //Diameter Credit-Control Application
-        //Credit-Control-Request
-
-
-        //Message Format
-        //
-        //      <Credit-Control-Request> ::= < Diameter Header: 272, REQ, PXY >
-        //                                   < Session-Id >
-        //                                   { Origin-Host }
-        //                                   { Origin-Realm }
-        //                                   { Destination-Realm }
-        //                                   { Auth-Application-Id }
-        //                                   { Service-Context-Id }
-        //                                   { CC-Request-Type }
-        //                                   { CC-Request-Number }
-        //                                   [ Destination-Host ]
-        //                                   [ User-Name ]
-        //                                   [ CC-Sub-Session-Id ]
-        //                                   [ Acct-Multi-Session-Id ]
-        //                                   [ Origin-State-Id ]
-        //                                   [ Event-Timestamp ]
-        //                                  *[ Subscription-Id ]
-        //                                   [ Service-Identifier ]
-        //                                   [ Termination-Cause ]
-        //                                   [ Requested-Service-Unit ]
-        //                                   [ Requested-Action ]
-        //                                  *[ Used-Service-Unit ]
-        //                                   [ Multiple-Services-Indicator ]
-        //                                  *[ Multiple-Services-Credit-Control ]
-        //                                  *[ Service-Parameter-Info ]
-        //                                   [ CC-Correlation-Id ]
-        //                                   [ User-Equipment-Info ]
-        //                                  *[ Proxy-Info ]
-        //                                  *[ Route-Record ]
-
-
-        dictionary.put("268", "Extensible-Authentication-Protocol-Request");
-        //Diameter Extensible Authentication Protocol Application (EAP)
-        //Diameter-EAP-Request
-
-
-        //Message format
-        //
-        //      <Diameter-EAP-Request> ::= < Diameter Header: 268, REQ, PXY >
-        //                                 < Session-Id >
-        //                                 { Auth-Application-Id }
-        //                                 { Origin-Host }
-        //                                 { Origin-Realm }
-        //                                 { Destination-Realm }
-        //                                 { Auth-Request-Type }
-        //                                 [ Destination-Host ]
-        //                                 [ NAS-Identifier ]
-        //                                 [ NAS-IP-Address ]
-        //                                 [ NAS-IPv6-Address ]
-        //                                 [ NAS-Port ]
-        //                                 [ NAS-Port-Id ]
-        //                                 [ NAS-Port-Type ]
-        //                                 [ Origin-State-Id ]
-        //                                 [ Port-Limit ]
-        //                                 [ User-Name ]
-        //                                 { EAP-Payload }
-        //                                 [ EAP-Key-Name ]
-        //                                 [ Service-Type ]
-        //                                 [ State ]
-        //                                 [ Authorization-Lifetime ]
-        //                                 [ Auth-Grace-Period ]
-        //                                 [ Auth-Session-State ]
-        //                                 [ Callback-Number ]
-        //                                 [ Called-Station-Id ]
-        //                                 [ Calling-Station-Id ]
-        //                                 [ Originating-Line-Info ]
-        //                                 [ Connect-Info ]
-        //                               * [ Framed-Compression ]
-        //                                 [ Framed-Interface-Id ]
-        //                                 [ Framed-IP-Address ]
-        //                               * [ Framed-IPv6-Prefix ]
-        //                                 [ Framed-IP-Netmask ]
-        //                                 [ Framed-MTU ]
-        //                                 [ Framed-Protocol ]
-        //                               * [ Tunneling ]
-        //                               * [ Proxy-Info ]
-        //                               * [ Route-Record ]
-
-
-        dictionary.put("265", "Authorize-Authenticate-Request");
-        //Diameter Network Access Server Application
-        //AA-Request
-
-
-        //Message Format
-        //
-        //         <AA-Request> ::= < Diameter Header: 265, REQ, PXY >
-        //                          < Session-Id >
-        //                          { Auth-Application-Id }
-        //                          { Origin-Host }
-        //                          { Origin-Realm }
-        //                          { Destination-Realm }
-        //                          { Auth-Request-Type }
-        //                          [ Destination-Host ]
-        //                          [ NAS-Identifier ]
-        //                          [ NAS-IP-Address ]
-        //                          [ NAS-IPv6-Address ]
-        //                          [ NAS-Port ]
-        //                          [ NAS-Port-Id ]
-        //                          [ NAS-Port-Type ]
-        //                          [ Origin-AAA-Protocol ]
-        //                          [ Origin-State-Id ]
-        //                          [ Port-Limit ]
-        //                          [ User-Name ]
-        //                          [ User-Password ]
-        //                          [ Service-Type ]
-        //                          [ State ]
-        //                          [ Authorization-Lifetime ]
-        //                          [ Auth-Grace-Period ]
-        //                          [ Auth-Session-State ]
-        //                          [ Callback-Number ]
-        //                          [ Called-Station-Id ]
-        //                          [ Calling-Station-Id ]
-        //                          [ Originating-Line-Info ]
-        //                          [ Connect-Info ]
-        //                          [ CHAP-Auth ]
-        //                          [ CHAP-Challenge ]
-        //                        * [ Framed-Compression ]
-        //                          [ Framed-Interface-Id ]
-        //                          [ Framed-IP-Address ]
-        //                        * [ Framed-IPv6-Prefix ]
-        //                          [ Framed-IP-Netmask ]
-        //                          [ Framed-MTU ]
-        //                          [ Framed-Protocol ]
-        //                          [ ARAP-Password ]
-        //                          [ ARAP-Security ]
-        //                        * [ ARAP-Security-Data ]
-        //                        * [ Login-IP-Host ]
-        //                        * [ Login-IPv6-Host ]
-        //                          [ Login-LAT-Group ]
-        //                          [ Login-LAT-Node ]
-        //                          [ Login-LAT-Port ]
-        //                          [ Login-LAT-Service ]
-        //                        * [ Tunneling ]
-        //                        * [ Proxy-Info ]
-        //                        * [ Route-Record ]
-
-
-        dictionary.put("283", "User-Authorization-Request");
-        //Diameter Session Initiation Protocol Application
-        //User-Authorization-Request
-
-
-        //Message Format
-        //
-        //       <UAR> ::= < Diameter Header: 283, REQ, PXY >
-        //                 < Session-Id >
-        //                 { Auth-Application-Id }
-        //                 { Auth-Session-State }
-        //                 { Origin-Host }
-        //                 { Origin-Realm }
-        //                 { Destination-Realm }
-        //                 { SIP-AOR }
-        //                 [ Destination-Host ]
-        //                 [ User-Name ]
-        //                 [ SIP-Visited-Network-Id ]
-        //                 [ SIP-User-Authorization-Type ]
-        //               * [ Proxy-Info ]
-        //               * [ Route-Record ]
-
-
-        dictionary.put("3000", "Get-Balance-Request");
-        //Diameter Control Balance Application
-        //Get-Balance-Request
-
-
-        //Message Format
-        //
-        //       <GBR> ::= < Diameter Header: 3000, REQ, PXY >
-        //                 [ User-Identity ]
     }
 
 }

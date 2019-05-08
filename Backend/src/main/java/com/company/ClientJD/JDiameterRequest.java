@@ -1,22 +1,18 @@
 package com.company.ClientJD;
 
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class JDiameterRequest {
-    
-    private static final Logger logger = LogManager.getLogger(JDiameterRequest.class);
 
-    //флаги для идентификации неработающих приложений
-    private static boolean isDiameterServerFail = false;
-    private static boolean isKafkaFail = false;
-    private static boolean isCassandraFail = false;
+
+    private static final Logger logger = LogManager.getLogger(JDiameterRequest.class);
 
 
     public String getBalance(String clientID){
@@ -24,20 +20,15 @@ public class JDiameterRequest {
         Request request = null;
         String balance = null;
 
-        if (!isDiameterServerFail && !isKafkaFail && !isCassandraFail){ //если все три приложения ОК
-            session = getSession();
-
-            if(session == null){
-                isDiameterServerFail = true;
-            }else{
-                request = formDiameterRequest(session, clientID);
-                balance = sendDiameterRequest(request, session);
-            }
-
+        session = getSession();
+        if(session != null){
+            request = formDiameterRequest(session, clientID);
+            balance = sendDiameterRequest(request, session);
         }
 
         return balance;
     }
+
 
     private Session getSession(){
         Session session = null;
@@ -47,8 +38,10 @@ public class JDiameterRequest {
         } catch (InternalException e) {
             logger.error("Connection with diameter server was failed or Diameter-Server failed. Need to reboot!\n" + e.getMessage());
         }
+
         return session;
     }
+
 
     private Request formDiameterRequest(Session session, String clientID){
         Request request = null;
@@ -59,6 +52,7 @@ public class JDiameterRequest {
         return request;
     }
 
+
     private String sendDiameterRequest(Request request, Session session){
         Avp avp = null;
         AvpSet avpSet = null;
@@ -66,9 +60,8 @@ public class JDiameterRequest {
         Future<Message> response = null;
 
         try {
-            response = session.send(request); //послыаем запрос
+            response = session.send(request); //посылаем запрос
             avpSet = response.get().getAvps(); //получаем все AVP ответа
-
             avp = avpSet.getAvp(Avp.CHECK_BALANCE_RESULT);
 
             if(avp != null){
@@ -80,23 +73,15 @@ public class JDiameterRequest {
                 avp = avpSet.getAvp(Avp.RESULT_CODE); //check errors
 
                 if(avp != null){
-                    if(avp.getInteger32() == ErrorCode.KAFKA_FAILED){
-                        logger.error("Kafka failed [Backend]");
-                        isKafkaFail = true;
-                    }
-
                     if(avp.getInteger32() == ErrorCode.ERROR_TYPE_REQUEST){
                         logger.error("This client sends wrong type Diameter-requests.\n " + avpSet.getAvp(Avp.ERROR_MESSAGE).getUTF8String());
                     }
 
-                    if(avp.getInteger32() == ErrorCode.CASSANDRA_FAILED){
-                        logger.error("App 'Balance' or Cassandra failed [Backend]");
-                        isCassandraFail = true;
+                    if(avp.getInteger32() == ErrorCode.RELOADING_APPS){
+                        logger.warn("Some apps of server reloading... Wait!");
                     }
-
                 }
             }
-
         } catch (InternalException | IllegalDiameterStateException | RouteException | OverloadException e) {
             logger.error("Send diameter request failed\n" + e.getMessage());
 

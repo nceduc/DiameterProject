@@ -1,32 +1,32 @@
 package com.company.Kafka;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.logging.log4j.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
+    private static ZkClient zkClient = new ZkClient("localhost:2181", 10000); //for connect ZooKeeper
 
-    public boolean writeRecordKafka(String clientID){
+
+    public static void writeRecordKafka(String clientID){
         final String topicName = "requestBalance";
-        final int COUNT_TRYING = 3;
         boolean result = false;
         Properties props = null;
         KafkaProducer producer = null;
         ProducerRecord producerRecord = null;
-        Future<RecordMetadata> response = null;
 
 
         //конфигурация
         props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put("max.block.ms", 2000L);
+        props.put("max.block.ms", 10000L);
         //сериализуем
         props.put("key.serializer",
                 "org.apache.kafka.common.serialization.StringSerializer");
@@ -36,23 +36,16 @@ public class KafkaRequest {
 
         producer = new KafkaProducer(props);
         producerRecord = new ProducerRecord(topicName, clientID);
-
-
-        for(int i = 0; i < COUNT_TRYING; i++){
-            response = producer.send(producerRecord); //пишем запись в кафку
-            try {
-                if(response.get().hasOffset()){
-                    result = true;
-                    break;
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                logger.error("Write to Kafka error, try again...\n" + e.getMessage());
-            }
-        }
-
-
-        return result;
+        producer.send(producerRecord); //пишем запись в кафку
     }
 
-
+    //healthCheck Kafka
+    public static boolean isKafkaRunning(){
+        boolean result = false;
+        int brokersCount = zkClient.countChildren("/brokers/ids");
+        if(brokersCount > 0){
+            result = true;
+        }
+        return result;
+    }
 }

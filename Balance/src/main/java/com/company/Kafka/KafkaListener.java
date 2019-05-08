@@ -11,7 +11,6 @@ class KafkaListener {
 
     private static final Logger logger = LogManager.getLogger(KafkaListener.class);
 
-
     public KafkaConsumer<String, String> getConsumer() {
         final String topicName = "requestBalance";
         final String groupId = "group01";
@@ -40,8 +39,8 @@ class KafkaListener {
 
         //подписываемся
         consumer.subscribe(Arrays.asList(topicName));
-        logger.info("Subscribed to topic=" + topicName + " [Balance]");
-        System.out.println("Subscribed to topic=" + topicName);
+        logger.info("Subscribed to topic: " + topicName + " [Balance]");
+        System.out.println("Subscribed to topic: " + topicName);
 
         return consumer;
     }

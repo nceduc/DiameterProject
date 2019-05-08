@@ -5,35 +5,30 @@ import com.company.Balance.Balance;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.Properties;
+import static com.company.Balance.Balance.*;
 
 public class KafkaProcessor {
 
     private static final Logger logger = LogManager.getLogger(KafkaProcessor.class);
 
     public void start(){
-
         String clientID = null;
         String balance = null;
+        boolean isCassandraFail = false;
         Balance balanceCassandra = new Balance(); //создали экземпляр и установили connection
         KafkaConsumer<String, String> consumer = new KafkaListener().getConsumer(); //получаем подписчика (слушателя)
 
+
         while (true) { //читаем топик requestBalance
             ConsumerRecords<String, String> records = consumer.poll(1000);
-
             if(records.count() > 1000){
                 for (ConsumerRecord<String, String> ignored : records){
                     //если записей в кафке слишком много
                     System.out.println(records.count());
                     System.out.println("Only read...");
                     logger.info("Only read:"+records.count()+" records");
-
                 }
             }else{
                 for (ConsumerRecord<String, String> record : records){
@@ -42,36 +37,22 @@ public class KafkaProcessor {
 
                     try {
                         clientID = record.value(); // получаем клиентский ID
-                        balance = balanceCassandra.getBalance(clientID); //получаем баланс
-                        writeRecordKafka(clientID, balance); //запись в кафку
+                        if (balanceCassandra.isCassandraRunning()) {
+                            balance = balanceCassandra.getBalance(clientID); //получаем баланс
+                            isCassandraFail = false;
+                        } else {
+                            balance = null;
+                            connection = null;
+                            isCassandraFail = true;
+                        }
+
+                        KafkaRequest.writeRecordKafka(clientID, balance, isCassandraFail); //запись в кафку
+
                     }catch (NullPointerException e){
                         logger.error("Balance or clientID was not got\n" + e.getMessage());
                     }
                 }
             }
         }
-    }
-
-
-    private void writeRecordKafka(String clientID, String balance){
-        final String topicName = "responseBalance";
-        Properties props = null;
-        KafkaProducer producer = null;
-        ProducerRecord producerRecord = null;
-
-
-        // конфигурация
-        props = new Properties();
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        //сериализуем
-        props.put("key.serializer",
-                "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer",
-                "org.apache.kafka.common.serialization.StringSerializer");
-
-
-        producer = new KafkaProducer(props);
-        producerRecord = new ProducerRecord(topicName, clientID, balance);
-        producer.send(producerRecord);
     }
 }

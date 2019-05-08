@@ -44,6 +44,16 @@ public class CustomerController {
             return answ.get().getBalance();
     }
 
+    @RequestMapping(value = "/customers/auth/{number}", method = RequestMethod.GET)
+    @ResponseBody
+    public String getPassword(@PathVariable String number) {
+        Optional<Customer> answ = customerService.getByNumber(number);
+        if (!answ.isPresent()) {
+            throw new CustomerNotExistException();
+        }
+        return answ.get().getPassword();
+    }
+
 
 
     @RequestMapping(value = "/customers", method = RequestMethod.POST)

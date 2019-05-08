@@ -10,14 +10,14 @@ import org.springframework.data.cassandra.core.mapping.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Table("customers")
+@Table("balance")
 public class Customer implements Serializable{
 
     @PrimaryKey
     @CassandraType(type = DataType.Name.VARCHAR)
     private String number;
-    @Column
     private BigDecimal balance;
+    private String password;
 
 
     public String getNumber() {
@@ -36,11 +36,20 @@ public class Customer implements Serializable{
         this.balance = balance;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     @Override
     public String toString() {
         return "{" +
                 "number='" + number + '\'' +
                 ", balance='" + balance + '\'' +
+                ", password='" + password + '\'' +
                 "}";
     }
 
