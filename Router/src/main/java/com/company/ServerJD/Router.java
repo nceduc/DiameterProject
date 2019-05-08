@@ -96,7 +96,6 @@ public class Router implements NetworkReqListener {
 
 
 
-
         }else{
             //this is undefined request
             appName = InfoDiameterRequest.getAppName(codeDiameterAppId);
