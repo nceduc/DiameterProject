@@ -7,6 +7,8 @@ import com.datastax.driver.core.exceptions.InvalidQueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.math.BigDecimal;
+
 public class Balance{
 
     private static Logger logger = LogManager.getLogger(Balance.class);
@@ -15,7 +17,7 @@ public class Balance{
     public String getBalance(String clientID){
         String balance = null;
         try {
-            balance = selectDB(clientID);
+            balance = selectBalanceDB(clientID);
         }catch (NullPointerException ex){
             logger.error("There isn't balance for the clientID");
         }
@@ -25,20 +27,18 @@ public class Balance{
 
 
 
-    private String selectDB(String clientID){
-        Double answer = null;
-        final String query = "SELECT * from company.balance WHERE number = ?";
-        ResultSet resultSet = null;
-        Row row = null;
-        try {
-            resultSet = session.execute(query, clientID);
-            row = resultSet.one();
-            answer = row.getDouble("balance");
+    private String selectBalanceDB(String clientID){
+        System.out.println(clientID);
+        BigDecimal balance = null;
+        String query = "SELECT balance from company.balance WHERE number = ?";
+        try {ResultSet queryResult = session.execute(query,clientID);
+            Row ansRow = queryResult.one();
+            balance = ansRow.getDecimal("balance");
         }
         catch (InvalidQueryException e){
             logger.error("Error select balance from Cassandra" + e.getMessage());
         }
-        return String.valueOf(answer);
+        return String.valueOf(balance);
     }
 
 
@@ -50,29 +50,14 @@ public class Balance{
         }
     }
     private void update(String number, double balance) {
+        BigDecimal getBal = new BigDecimal(balance);
         String query = "INSERT INTO company.balance (number,balance) VALUES (?, ?)";
-        try {
-            session.execute(query, number, balance);
-            System.out.println("------------Update успешен---------------");}
-        catch (InvalidQueryException e){
-            final String createKeyspaceCql =
-                    "CREATE KEYSPACE IF NOT EXISTS company WITH replication = {\n" +
-                            "  'class': 'SimpleStrategy',\n" +
-                            "  'replication_factor': '2'\n" +
-                            "};";
-            session.execute(createKeyspaceCql);
-            System.out.println("Keyspace company created");
-            final String createTableCql =
-                    "CREATE TABLE if not exists company.balance (number varchar, balance double, PRIMARY KEY(number))";
-            session.execute(createTableCql);
-            System.out.println("Table balance created");
             try {
-                session.execute(query, number, balance);
+                session.execute(query, number, getBal);
                 System.out.println("------------Update успешен---------------");}
-            catch (InvalidQueryException e1){
+            catch (InvalidQueryException e){
                 e.printStackTrace();
             }
         }
     }
 
-}
