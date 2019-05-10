@@ -3,7 +3,6 @@ package com.company.Balance;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 public class Balance{
 
     private static Logger logger = LogManager.getLogger(Balance.class);
-    public static Session connection = new CassandraConnector().connect(); //connection with Cassandra
+    public static Session connection = CassandraConnector.getInstance().connect(); //connection with Cassandra
 
     public String getBalance(String clientID){
         String balance = null;
@@ -27,31 +26,35 @@ public class Balance{
 
 
     private String selectDB(String clientID){
-        BigDecimal answer = null;
+        String answer = null;
+        BigDecimal balance = null;
         final String query = "SELECT * from company.balance WHERE number = ?";
         ResultSet resultSet = null;
         Row row = null;
         try {
+            if(connection == null){
+                connection = CassandraConnector.getInstance().connect();
+            }
             resultSet = connection.execute(query, clientID);
             row = resultSet.one();
-            answer = row.getDecimal("balance");
+            balance = row.getDecimal("balance");
         }
-        catch (InvalidQueryException e){
+        catch (Exception e){
             logger.error("Error select balance from Cassandra" + e.getMessage());
         }
-        return String.valueOf(answer);
+
+        if(balance != null){
+            answer = String.valueOf(balance);
+        }
+        return answer;
     }
 
 
-    public boolean isCassandraRunning(){
+    public static boolean isCassandraRunning(){
         boolean result = false;
         final String query = "SELECT now() FROM system.local"; //test query
 
         try {
-            if(connection == null){
-                connection = new CassandraConnector().connect();
-                logger.warn("Try to connect...");
-            }
             if(connection != null){
                 connection.execute(query);
                 result = true;
@@ -62,6 +65,8 @@ public class Balance{
         }
         return result;
     }
+
+
 
 
 

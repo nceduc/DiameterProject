@@ -8,15 +8,7 @@ public class ClientData implements Serializable{
 
     private String balance;
     private Date date;
-    private boolean isCassandraFail;
-
-    public boolean isCassandraFail() {
-        return isCassandraFail;
-    }
-
-    public void setCassandraFail(boolean cassandraFail) {
-        isCassandraFail = cassandraFail;
-    }
+    private boolean isClientNotFound;
 
     public String getBalance() {
         return balance;
@@ -32,5 +24,13 @@ public class ClientData implements Serializable{
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public boolean isClientNotFound() {
+        return isClientNotFound;
+    }
+
+    public void setClientNotFound(boolean clientNotFound) {
+        isClientNotFound = clientNotFound;
     }
 }

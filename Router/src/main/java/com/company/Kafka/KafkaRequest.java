@@ -1,6 +1,6 @@
 package com.company.Kafka;
 
-import org.I0Itec.zkclient.ZkClient;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.StreamsConfig;
@@ -12,8 +12,6 @@ import java.util.Properties;
 public class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
-    private static ZkClient zkClient = new ZkClient("localhost:2181", 10000); //for connect ZooKeeper
-
 
     public static void writeRecordKafka(String clientID){
         final String topicName = "requestBalance";
@@ -39,13 +37,4 @@ public class KafkaRequest {
         producer.send(producerRecord); //пишем запись в кафку
     }
 
-    //healthCheck Kafka
-    public static boolean isKafkaRunning(){
-        boolean result = false;
-        int brokersCount = zkClient.countChildren("/brokers/ids");
-        if(brokersCount > 0){
-            result = true;
-        }
-        return result;
-    }
 }

@@ -16,7 +16,7 @@ public class KafkaProcessor {
     public void start(){
         String clientID = null;
         String balance = null;
-        boolean isCassandraFail = false;
+        boolean isClientNotFound = false;
         Balance balanceCassandra = new Balance(); //создали экземпляр и установили connection
         KafkaConsumer<String, String> consumer = new KafkaListener().getConsumer(); //получаем подписчика (слушателя)
 
@@ -37,16 +37,18 @@ public class KafkaProcessor {
 
                     try {
                         clientID = record.value(); // получаем клиентский ID
-                        if (balanceCassandra.isCassandraRunning()) {
-                            balance = balanceCassandra.getBalance(clientID); //получаем баланс
-                            isCassandraFail = false;
-                        } else {
-                            balance = null;
+                        balance = balanceCassandra.getBalance(clientID); //получаем баланс
+
+                        if(balance != null){
+                            isClientNotFound = false;
+                        }else if(isCassandraRunning()){
+                            isClientNotFound = true;
+                        }else{
                             connection = null;
-                            isCassandraFail = true;
                         }
 
-                        KafkaRequest.writeRecordKafka(clientID, balance, isCassandraFail); //запись в кафку
+
+                        KafkaRequest.writeRecordKafka(clientID, balance, isClientNotFound); //запись в кафку
 
                     }catch (NullPointerException e){
                         logger.error("Balance or clientID was not got\n" + e.getMessage());

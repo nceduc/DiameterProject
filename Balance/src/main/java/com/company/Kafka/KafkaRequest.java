@@ -16,7 +16,7 @@ class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
 
-    static void writeRecordKafka(String clientID, String balance, boolean isCassandraFail){
+    static void writeRecordKafka(String clientID, String balance, boolean isClientNotFound){
         final String topicName = "responseBalance";
         byte[] value = null;
         Properties props = null;
@@ -39,7 +39,7 @@ class KafkaRequest {
         clientData = new ClientData();
         clientData.setBalance(balance);
         clientData.setDate(new Date());
-        clientData.setCassandraFail(isCassandraFail);
+        clientData.setClientNotFound(isClientNotFound);
         value = serialize(clientData);
         producerRecord = new ProducerRecord(topicName, clientID, value);
         producer.send(producerRecord);

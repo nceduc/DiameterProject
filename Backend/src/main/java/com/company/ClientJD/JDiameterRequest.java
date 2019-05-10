@@ -13,20 +13,22 @@ public class JDiameterRequest {
 
 
     private static final Logger logger = LogManager.getLogger(JDiameterRequest.class);
+    private static JDiameterRequest INSTANCE = null;
 
 
-    public String getBalance(String clientID){
+    public ClientData getClientData(String clientID){
+        ClientData clientData = null;
         Session session = null;
         Request request = null;
-        String balance = null;
+
 
         session = getSession();
         if(session != null){
             request = formDiameterRequest(session, clientID);
-            balance = sendDiameterRequest(request, session);
+            clientData = sendDiameterRequest(request, session);
         }
 
-        return balance;
+        return clientData;
     }
 
 
@@ -53,10 +55,10 @@ public class JDiameterRequest {
     }
 
 
-    private String sendDiameterRequest(Request request, Session session){
+    private ClientData sendDiameterRequest(Request request, Session session){
         Avp avp = null;
         AvpSet avpSet = null;
-        String answer = null;
+        ClientData answer = null;
         Future<Message> response = null;
 
         try {
@@ -64,9 +66,13 @@ public class JDiameterRequest {
             avpSet = response.get().getAvps(); //получаем все AVP ответа
             avp = avpSet.getAvp(Avp.CHECK_BALANCE_RESULT);
 
+
             if(avp != null){
                 //if AVP with balance is not empty
-                answer = avp.getUTF8String(); //получаем баланс
+                answer = new ClientData();
+                answer.setBalance(avp.getUTF8String());
+                avp = avpSet.getAvp(Avp.TIME_STAMPS);
+                answer.setDate(avp.getTime());
 
             }else{
                 //if AVP with balance is empty
@@ -79,6 +85,10 @@ public class JDiameterRequest {
 
                     if(avp.getInteger32() == ErrorCode.RELOADING_APPS){
                         logger.warn("Some apps of server reloading... Wait!");
+                    }
+
+                    if(avp.getInteger32() == -3){
+                        logger.warn("User does not signup in system");
                     }
                 }
             }
@@ -93,5 +103,15 @@ public class JDiameterRequest {
         return answer;
     }
 
+
+    public static JDiameterRequest getInstance(){
+        if(INSTANCE == null){
+            INSTANCE = new JDiameterRequest();
+        }
+        return INSTANCE;
+    }
+
+
+    private JDiameterRequest(){}
 
 }

@@ -1,5 +1,6 @@
 package com.company.backend;
 
+import com.company.ClientJD.ClientData;
 import com.company.ClientJD.JDiameterRequest;
 import org.json.simple.JSONObject;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,19 +15,26 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping(value = "balance/{clientID}", method = GET)
 public class LiveBalance {
 
-    private JDiameterRequest request = new JDiameterRequest(); //создали экземпляр класса для отправки диаметровых реквестов ???
 
     @GetMapping
     public String balance(@PathVariable String clientID) {
+        JDiameterRequest request = null;
         String balance = null;
+        String time = null;
+        ClientData clientData = null;
         JSONObject jsonObject = null;
 
-        balance = request.getBalance(clientID);
+        request = JDiameterRequest.getInstance(); //получили экземпляр
+        clientData = request.getClientData(clientID);
+        balance = clientData.getBalance();
+        time = String.valueOf(clientData.getDate().getTime());
+        System.out.println(balance);
+        System.out.println(time);
 
-        if(balance == null){
+        if(clientData == null){
             balance = "loading...";
         }
-        //формируем ответ и возвращаем баланс
+        //формируем ответ и возвращаем данные
         jsonObject = new JSONObject();
         jsonObject.put("balance", balance);
         return jsonObject.toJSONString();

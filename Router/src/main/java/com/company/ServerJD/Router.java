@@ -2,11 +2,15 @@ package com.company.ServerJD;
 
 import com.company.Kafka.ClientData;
 import com.company.Kafka.KafkaProcessor;
+import com.company.failApps.FailApps;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
-import static com.company.Kafka.KafkaRequest.*;
-import static com.company.failApps.FailApps.*;
+
+import java.util.Date;
+
+import static com.company.Kafka.KafkaRequest.writeRecordKafka;
+
 
 public class Router implements NetworkReqListener {
 
@@ -26,14 +30,19 @@ public class Router implements NetworkReqListener {
         AvpSet avpSet = null;
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
+        int countKafkaRequest = 0;
+        final int LIMIT_REQUEST = 20;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
         String clientID = null;
         String balance = null;
+        boolean isClientNotFound = false;
+        boolean isAppsRunning = true;
+        Date date = null;
         Answer answer = null;
         String message = null;
-
+        FailApps failApps = null;
 
         codeDiameterAppId = request.getApplicationId(); //получаем код диаметрового приложения
         codeDiameterRequest = request.getCommandCode(); //получаем код диаметрового запроса
@@ -42,6 +51,8 @@ public class Router implements NetworkReqListener {
             //this is Get-Balance-Request
             avpSet = request.getAvps(); //получаем все Avp реквеста
             answer = request.createAnswer(); //начинаем формировать ответ для BE
+            failApps = FailApps.getInstance();
+
 
 
             try {
@@ -54,45 +65,54 @@ public class Router implements NetworkReqListener {
             }
 
 
-
-            if(appsRunning()){
-                if(isKafkaRunning()){
-                    while(true){
-                        if(runningCassandra(clientID)){ //доп. проверка на то, чтобы запросы не отправлялись в Кассандру, если она fail
-                            writeRecordKafka(clientID);
-                        }
-                        clientData = KafkaProcessor.mapData.get(clientID);
-                        //пишем запись в кафку до тех пор, пока не придет какое либо val
-                        if(clientData != null) {
-                            System.out.print("\n\n"+clientData.isCassandraFail()+"\n\n");
-                            if(!isReloading && clientData.isCassandraFail()){
-                                logger.error("Cassandra failed. Restart...");
-                                isCassandraFail = true;
-                                clientData.setCassandraFail(false);
-                                KafkaProcessor.mapData.put(clientID, clientData);
-                                reloadApps();
-                                break;
-                            }else {
-                                clientData.setCassandraFail(false);
-                                balance = clientData.getBalance();
-                                answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
-                                break;
-                            }
-                        }
+            clientData = KafkaProcessor.mapData.get(clientID);
+            while (true){
+                countKafkaRequest++;
+                isAppsRunning = failApps.appsRunning(); //актуализируем статус
+                if(isAppsRunning && countKafkaRequest < LIMIT_REQUEST){
+                    System.out.println("Запрос номер: "+countKafkaRequest);
+                    //пишем запись в кафку до тех пор, пока не придет какое либо val
+                    if(clientData != null){
+                        isClientNotFound = clientData.isClientNotFound();
                     }
-                }else {
-                    //если кафка не работает
-                    logger.error("Kafka failed. Restart...");
-                    isKafkaFail = true;
-                    reloadApps();
+                    if(isClientNotFound == false){
+                        writeRecordKafka(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
+                    }
+                    clientData = KafkaProcessor.mapData.get(clientID);
+                    if(clientData != null){
+                        break;
+                    }
+                }else{
+                    //если какое-то приложение не работает или превышен лимит запросов
+                    break;
                 }
-            }else{
-                //если приложения в стадии перезагрузки
-                message = "Some apps of server reloading";
+            }
+
+            //формируем соотвествующий диаметровый ответ
+            if(clientData != null){
+                //берем старый баланс
+                balance = clientData.getBalance();
+                date = clientData.getDate();
+                if(!clientData.isClientNotFound()){
+                    answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                    answer.getAvps().addAvp(Avp.TIME_STAMPS, date); //положили дату в ответ
+                }else{
+                    message = "User does not signup in system";
+                    answer.getAvps().addAvp(Avp.RESULT_CODE, -3);
+                    answer.getAvps().addAvp(Avp.ERROR_MESSAGE, message.getBytes()); //возвращаем диаметровый ответ с сообщением об ошибке
+                    logger.warn("User does not signup in system");
+                }
+            }else if(!isAppsRunning){
+                //если какое-то приложение не работает
+                message = "Some apps of server don't work";
                 answer.getAvps().addAvp(Avp.RESULT_CODE, -2);
                 answer.getAvps().addAvp(Avp.ERROR_MESSAGE, message.getBytes()); //возвращаем диаметровый ответ с сообщением об ошибке
-                logger.warn("Some apps of server reloading... Wait!");
+                logger.warn("Some apps of server don't work");
+            }else{
+                answer.getAvps().addAvp(Avp.CHECK_BALANCE_RESULT, balance.getBytes()); //положили баланс в ответ
+                answer.getAvps().addAvp(Avp.TIME_STAMPS, date); //положили дату в ответ
             }
+
 
 
 

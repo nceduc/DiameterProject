@@ -1,6 +1,7 @@
 package com.company.Kafka;
 
 
+import com.company.failApps.FailApps;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -26,13 +27,17 @@ public class KafkaProcessor {
        ClientData clientData = null;
        KafkaConsumer<String, byte[]> consumer = new KafkaListener().getConsumer(); //получаем подписчика для получения баланса
 
+
+
        while (true) { //читаем топик responseBalance
-            ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(1000));
-            for (ConsumerRecord<String, byte[]> record : records){
-                clientID = record.key();
-                clientData = (ClientData) deserialize(record.value());
-                mapData.put(clientID, clientData);
-            }
+           ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(1000));
+           for (ConsumerRecord<String, byte[]> record : records){
+               clientID = record.key();
+               clientData = (ClientData) deserialize(record.value());
+               if(clientData.getBalance() != null || clientData.isClientNotFound()){
+                   mapData.put(clientID, clientData);
+               }
+           }
        }
    }
 

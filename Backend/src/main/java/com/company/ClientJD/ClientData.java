@@ -1,14 +1,11 @@
-package com.company.Kafka;
-
-import java.io.Serializable;
+package com.company.ClientJD;
 
 import java.util.Date;
 
-public class ClientData implements Serializable{
+public class ClientData {
 
     private String balance;
     private Date date;
-    private boolean isClientNotFound;
 
     public String getBalance() {
         return balance;
@@ -24,13 +21,5 @@ public class ClientData implements Serializable{
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public boolean isClientNotFound() {
-        return isClientNotFound;
-    }
-
-    public void setClientNotFound(boolean clientNotFound) {
-        isClientNotFound = clientNotFound;
     }
 }
