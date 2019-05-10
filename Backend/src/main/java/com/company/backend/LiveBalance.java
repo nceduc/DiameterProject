@@ -26,14 +26,17 @@ public class LiveBalance {
 
         request = JDiameterRequest.getInstance(); //получили экземпляр
         clientData = request.getClientData(clientID);
-        balance = clientData.getBalance();
-        time = String.valueOf(clientData.getDate().getTime());
-        System.out.println(balance);
-        System.out.println(time);
 
-        if(clientData == null){
+        if(clientData != null){
+            balance = clientData.getBalance();
+            time = String.valueOf(clientData.getDate().getTime());
+            System.out.println(balance);
+            System.out.println(time);
+        }else{
             balance = "loading...";
         }
+
+
         //формируем ответ и возвращаем данные
         jsonObject = new JSONObject();
         jsonObject.put("balance", balance);

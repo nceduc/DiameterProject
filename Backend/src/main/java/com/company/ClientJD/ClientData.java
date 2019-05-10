@@ -6,6 +6,8 @@ public class ClientData {
 
     private String balance;
     private Date date;
+    private boolean isReceivedResp = true;
+
 
     public String getBalance() {
         return balance;
@@ -21,5 +23,13 @@ public class ClientData {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public boolean isReceivedResp() {
+        return isReceivedResp;
+    }
+
+    public void setReceivedResp(boolean received) {
+        isReceivedResp = received;
     }
 }

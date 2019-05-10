@@ -44,11 +44,13 @@ public class CheckFailApps extends TimerTask{
             //start
             execCommand("service kafka start");
 
+            logger.warn("Try to reload Kafka");
             while(true){
                 if(isKafkaRunning()){
                     break;
                 }
             }
+
             failApps.setKafkaFail(false);
         }
 
@@ -58,15 +60,18 @@ public class CheckFailApps extends TimerTask{
             //start
             execCommand("service cassandra start");
 
+            logger.warn("Try to reload Cassandra");
             while(true){
                 if(isCassandraRunning()){
                     break;
                 }
             }
+
             failApps.setCassandraFail(false);
         }
         System.out.println("Check number: "+count);
     }
+
 
     private static int execCommand(String command){
         int exitCode = -1;

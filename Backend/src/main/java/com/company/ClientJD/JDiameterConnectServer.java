@@ -12,18 +12,43 @@ import java.util.concurrent.TimeUnit;
 public class JDiameterConnectServer {
 
     private static final Logger logger = LogManager.getLogger(JDiameterConnectServer.class);
-    static SessionFactory connectionSession;
+    private static JDiameterConnectServer INSTANCE = null;
+    private static Session connection = null;
 
-    public void connect(){
+
+    public static JDiameterConnectServer getInstance(){
+        if(INSTANCE == null){
+            INSTANCE = new JDiameterConnectServer();
+        }
+        return INSTANCE;
+    }
+
+
+    public Session connect(){
+        try {
+            if(connection == null){
+                connection = getSessionFactory().getNewSession();
+            }
+        } catch (InternalException e) {
+            logger.error("Connect with Diameter server failed!");
+        }
+
+        return connection;
+    }
+
+
+    private SessionFactory getSessionFactory(){
+        SessionFactory sessionFactory = null;
         StackImpl client = new StackImpl();
         try{
-            connectionSession = client.init(new XMLConfiguration("client-jdiameter-config.xml"));
+            sessionFactory = client.init(new XMLConfiguration("client-jdiameter-config.xml"));
             client.unwrap(Network.class).addNetworkReqListener(new NetworkReqListener() {
                 @Override
                 public Answer processRequest(Request request) {
                     return null;
                 }
             }, ApplicationId.createByAuthAppId(33333));
+
             client.start(Mode.ALL_PEERS,2000,TimeUnit.MILLISECONDS); //timeout for sending request
 
             logger.info("Client connected with diameter server [Backend]");
@@ -35,6 +60,9 @@ public class JDiameterConnectServer {
             logger.error(e.getStackTrace());
         }
 
-
+        return sessionFactory;
     }
+
+
+    private JDiameterConnectServer(){}
 }

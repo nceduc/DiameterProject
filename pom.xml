@@ -11,7 +11,7 @@
 
 	<modules>
 		<module>Backend</module>
-		<module>Router</module>
+		<module>DiameterServer</module>
 		<module>Balance</module>
 	</modules>
 

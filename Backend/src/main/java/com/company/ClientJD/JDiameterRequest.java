@@ -5,6 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -14,33 +16,44 @@ public class JDiameterRequest {
 
     private static final Logger logger = LogManager.getLogger(JDiameterRequest.class);
     private static JDiameterRequest INSTANCE = null;
+    private static Map<String, ClientData> dataReq = new HashMap<>();
+
+
+    public static JDiameterRequest getInstance(){
+        if(INSTANCE == null){
+            INSTANCE = new JDiameterRequest();
+        }
+        return INSTANCE;
+    }
 
 
     public ClientData getClientData(String clientID){
         ClientData clientData = null;
-        Session session = null;
+        Session connection = null;
         Request request = null;
 
 
-        session = getSession();
-        if(session != null){
-            request = formDiameterRequest(session, clientID);
-            clientData = sendDiameterRequest(request, session);
+        connection = getConnection();
+        if(connection != null){
+            request = formDiameterRequest(connection, clientID);
+            clientData = sendDiameterRequest(request, connection, clientID); //получили новые данные
+        }else{
+            logger.error("JDiameter server failed. Need to reload!");
+        }
+
+
+        if(clientData == null){
+            if(dataReq.get(clientID) != null){
+                clientData = dataReq.get(clientID); //берем старые данные
+            }
         }
 
         return clientData;
     }
 
 
-    private Session getSession(){
-        Session session = null;
-
-        try {
-            session = JDiameterConnectServer.connectionSession.getNewSession();
-        } catch (InternalException e) {
-            logger.error("Connection with diameter server was failed or Diameter-Server failed. Need to reboot!\n" + e.getMessage());
-        }
-
+    private Session getConnection(){
+        Session session = JDiameterConnectServer.getInstance().connect();
         return session;
     }
 
@@ -55,24 +68,57 @@ public class JDiameterRequest {
     }
 
 
-    private ClientData sendDiameterRequest(Request request, Session session){
-        Avp avp = null;
-        AvpSet avpSet = null;
-        ClientData answer = null;
+    private ClientData sendDiameterRequest(Request request, Session session, String clientID){
+        ClientData clientData = null;
         Future<Message> response = null;
 
         try {
-            response = session.send(request); //посылаем запрос
+            clientData = dataReq.get(clientID);
+            if(clientData != null){
+                if(clientData.isReceivedResp()){
+                    clientData.setReceivedResp(false);
+                    response = session.send(request); //посылаем запрос
+                }
+            }else{
+                //this is the first request
+                response = session.send(request); //посылаем запрос
+            }
+
+
+            if(response != null){
+                //Diameter response received
+                clientData = parseDiameterResponse(response); //получаем новые данные
+                if(clientData != null){
+                    clientData.setReceivedResp(true);
+                    dataReq.put(clientID, clientData);
+                }
+
+            }
+        } catch (InternalException | IllegalDiameterStateException | RouteException | OverloadException e) {
+            logger.error("Send diameter request failed\n" + e.getMessage());
+
+        }
+
+        return clientData;
+    }
+
+
+    private ClientData parseDiameterResponse(Future<Message> response){
+        Avp avp = null;
+        AvpSet avpSet = null;
+        ClientData clientData = null;
+
+        try {
             avpSet = response.get().getAvps(); //получаем все AVP ответа
             avp = avpSet.getAvp(Avp.CHECK_BALANCE_RESULT);
 
 
             if(avp != null){
                 //if AVP with balance is not empty
-                answer = new ClientData();
-                answer.setBalance(avp.getUTF8String());
+                clientData = new ClientData();
+                clientData.setBalance(avp.getUTF8String());
                 avp = avpSet.getAvp(Avp.TIME_STAMPS);
-                answer.setDate(avp.getTime());
+                clientData.setDate(avp.getTime());
 
             }else{
                 //if AVP with balance is empty
@@ -87,28 +133,17 @@ public class JDiameterRequest {
                         logger.warn("Some apps of server reloading... Wait!");
                     }
 
-                    if(avp.getInteger32() == -3){
+                    if(avp.getInteger32() == ErrorCode.USER_NOT_FOUND){
                         logger.warn("User does not signup in system");
                     }
                 }
             }
-        } catch (InternalException | IllegalDiameterStateException | RouteException | OverloadException e) {
-            logger.error("Send diameter request failed\n" + e.getMessage());
-
         } catch (AvpDataException | InterruptedException | ExecutionException | NullPointerException e){
             logger.error("Balance was not received\n" + e.getMessage());
 
         }
 
-        return answer;
-    }
-
-
-    public static JDiameterRequest getInstance(){
-        if(INSTANCE == null){
-            INSTANCE = new JDiameterRequest();
-        }
-        return INSTANCE;
+        return clientData;
     }
 
 

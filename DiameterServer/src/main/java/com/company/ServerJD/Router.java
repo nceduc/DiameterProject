@@ -31,7 +31,7 @@ public class Router implements NetworkReqListener {
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
         int countKafkaRequest = 0;
-        final int LIMIT_REQUEST = 20;
+        final int LIMIT_REQUEST = 30;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
@@ -84,6 +84,7 @@ public class Router implements NetworkReqListener {
                     }
                 }else{
                     //если какое-то приложение не работает или превышен лимит запросов
+                    logger.warn("Limit requests expired");
                     break;
                 }
             }

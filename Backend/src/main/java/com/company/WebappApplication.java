@@ -8,9 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class WebappApplication {
 
 	public static void main(String[] args) {
-		JDiameterConnectServer jDiameterConnectServer = new JDiameterConnectServer();
-		jDiameterConnectServer.connect(); //устанавливаем связь с сервером для запроса баланса
-
+		JDiameterConnectServer.getInstance().connect();
 		SpringApplication.run(WebappApplication.class, args);
 	}
 }
