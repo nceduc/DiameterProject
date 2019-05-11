@@ -1,0 +1,77 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="img/favicon.ico">
+
+    <title>Registration</title>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/registration.css}" rel="stylesheet">
+</head>
+
+<body class="text-center">
+<div class="container-fluid">
+    <div class = "row justify-content-md-center">
+<form th:action="@{/registration}" th:object="${userForm}" class="form-signup" method="post">
+    <img class="mb-4" th:src="@{/img/logo/logo.png}" alt="Logo" width="100"/>
+    <h1 class="h3 mb-3 font-weight-normal text-light">Registration</h1>
+
+    <div th:if="${#fields.hasErrors('*')}">
+        <div class="alert alert-danger">
+            Error in fields.
+        </div>
+    </div>
+
+    <div th:if="${param.success}">
+        <div class="alert alert-info">
+            Successfull registration! Now, please, go to <a th:href="@{/login}">login page</a> and log in.
+        </div>
+    </div>
+
+    <div th:if="${param.disabled}">
+        <div class="alert alert-info">
+            Currently disabled because we have some problem. Please, try again later.
+        </div>
+    </div>
+
+    <div class="form-number">
+    <label for="login" class="sr-only">Phone number</label>
+    <input type="text" name="login" id="login" class="form-control input-lg"
+           placeholder="Phone Number" required="true" autofocus="true" th:field="*{login}"/>
+    <span class="text-danger" th:if="${#fields.hasErrors('login')}" th:errors="*{login}">..</span>
+    </div>
+    <div class="form-password">
+    <label for="password" class="sr-only">Password</label>
+    <input type="password" name="password" id="password" class="form-control input-lg"
+           placeholder="Password" required="true" th:field="*{password}"/>
+    <span class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">..</span>
+    </div>
+    <div class="form-password">
+    <label for="confirmPassword" class="sr-only">Please input again</label>
+    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control input-lg"
+           placeholder="Confirm Password" required="true" th:field="*{confirmPassword}"/>
+    <span class="text-danger" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">..</span>
+    </div>
+    <button class="btn btn-lg btn-success btn-block" type="submit">Registration</button>
+        </form>
+    </div>
+    <div class = "row justify-content-center">
+        <a th:href="@{/login}" class="btn btn-lg btn-primary">Already have account?</a>
+    </div>
+    <div class = "row justify-content-center">
+        <a href="/" class="btn btn-lg btn-secondary">Return to the main page</a>
+    </div>
+    <div class="row justify-content-center">
+        <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
+    </div>
+</div>
+</body>
+</html>
