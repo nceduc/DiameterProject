@@ -1,6 +1,6 @@
 package com.company.failApps;
 
-import com.company.Kafka.KafkaProcessor;
+import com.company.kafka.KafkaProcessor;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,11 +20,9 @@ public class CheckFailApps extends TimerTask{
     private static final Logger logger = LogManager.getLogger(CheckFailApps.class);
     private static ZkClient zkClient = new ZkClient("localhost:2181", 10000); //for connect ZooKeeper
     private FailApps failApps = FailApps.getInstance();
-    static  int count = 0;
 
     @Override
     public void run() {
-        count++;
         if(!isKafkaRunning()) {
             //если кафка не работает
             logger.error("Kafka failed. Restart...");
@@ -69,7 +67,6 @@ public class CheckFailApps extends TimerTask{
 
             failApps.setCassandraFail(false);
         }
-        System.out.println("Check number: "+count);
     }
 
 

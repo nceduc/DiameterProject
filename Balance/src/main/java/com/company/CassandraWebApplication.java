@@ -1,6 +1,6 @@
 package com.company;
 
-import com.company.Kafka.KafkaProcessor;
+import com.company.kafka.KafkaProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
