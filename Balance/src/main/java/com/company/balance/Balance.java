@@ -65,41 +65,6 @@ public class Balance{
         }
         return result;
     }
-
-
-
-
-
-
-
-    //for testing
-    {
-        createTable();
-        for(int i = 0; i<30; i++){
-            this.update("79005091262"+i, 1000+i);
-        }
-    }
-
-
-    private void createTable(){
-        String query = "CREATE KEYSPACE IF NOT EXISTS company WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'};";
-        connection.execute(query);
-        System.out.println("Keyspace company created");
-        query = "CREATE TABLE IF NOT EXISTS company.balance (number varchar, balance double, PRIMARY KEY(number));";
-        connection.execute(query);
-        System.out.println("Table balance created");
-    }
-
-
-    private void update(String number, double balance) {
-        final String query = "INSERT INTO company.balance (number,balance) VALUES (?, ?)";
-        connection.execute(query, number, new BigDecimal(balance));
-        System.out.println("------------Update успешен---------------");
-    }
-
-    //dor testing
-
-
 }
 
 

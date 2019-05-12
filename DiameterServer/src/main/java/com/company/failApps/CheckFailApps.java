@@ -1,6 +1,5 @@
 package com.company.failApps;
 
-import com.company.kafka.KafkaProcessor;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

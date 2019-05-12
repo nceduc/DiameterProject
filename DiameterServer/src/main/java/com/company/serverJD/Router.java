@@ -19,6 +19,7 @@ public class Router implements NetworkReqListener {
         InfoDiameterRequest.initDictionary();
         System.out.println("Dictionary loaded");
         logger.info("Dictionary loaded");
+        writeRecordKafka("testRecord");
     }
 
     @Override
@@ -72,7 +73,7 @@ public class Router implements NetworkReqListener {
                     if (clientData != null) {
                         isClientNotFound = clientData.isClientNotFound();
                     }
-                    if (isClientNotFound == false) {
+                    if (!isClientNotFound) {
                         writeRecordKafka(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                     }
                     clientData = KafkaProcessor.mapData.get(clientID);
