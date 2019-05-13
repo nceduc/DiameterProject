@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
 import org.jdiameter.server.impl.StackImpl;
 import org.jdiameter.server.impl.helpers.XMLConfiguration;
+import org.mobicents.diameter.dictionary.AvpDictionary;
 
 import java.util.concurrent.TimeUnit;
 
@@ -49,13 +50,13 @@ public class JDiameterConnectServer {
                 }
             }, ApplicationId.createByAuthAppId(33333));
 
-            client.start(Mode.ALL_PEERS,2000,TimeUnit.MILLISECONDS); //timeout for sending request
+            client.start(Mode.ALL_PEERS,7000, TimeUnit.MILLISECONDS); //timeout for sending request
 
             logger.info("Client connected with diameter server [Backend]");
-            System.out.println("\n\nConnected with server\n\n");
+            System.out.println("\n\nConnected with Diameter-server\n\n");
 
         } catch (InternalException | IllegalDiameterStateException | ApplicationAlreadyUseException e) {
-            logger.error("Client connection with diameter connection was failed\n" + e.getMessage());
+            logger.error("Client connection with diameter was failed\n" + e.getMessage());
         } catch (Exception e) {
             logger.error(e.getStackTrace());
         }
@@ -63,6 +64,6 @@ public class JDiameterConnectServer {
         return sessionFactory;
     }
 
-
     private JDiameterConnectServer(){}
+
 }

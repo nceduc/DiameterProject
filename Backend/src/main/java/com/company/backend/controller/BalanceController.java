@@ -35,7 +35,7 @@ public class BalanceController {
         dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if(clientData != null){
             response = clientData.getBalance();
-            timeLong = clientData.getDate().getTime();
+            timeLong = (clientData.getDate().getTime() + (1000*60*60*3)); //переводим время на Россию
             date = dateFormat.format(timeLong);
         }else{
             response = "Currently disabled because our server have some problem. Please, try again later";

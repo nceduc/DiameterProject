@@ -53,7 +53,12 @@ public class JDiameterRequest {
 
 
     private Session getConnection(){
-        Session session = JDiameterConnectServer.getInstance().connect();
+        Session session = null;
+        try {
+            session = JDiameterConnectServer.getInstance().connect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return session;
     }
 

@@ -1,25 +1,32 @@
 package com.company.serverJD;
 
+import com.company.failApps.FailApps;
 import com.company.kafka.ClientData;
 import com.company.kafka.KafkaProcessor;
-import com.company.failApps.FailApps;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
+import org.mobicents.diameter.dictionary.AvpDictionary;
 import java.util.Date;
 import static com.company.kafka.KafkaRequest.writeRecordKafka;
 
-
 public class Router implements NetworkReqListener {
+
 
     private static final Logger logger = LogManager.getLogger(Router.class);
 
-    static {
+
+    {
         //init dictionary
-        InfoDiameterRequest.initDictionary();
-        System.out.println("Dictionary loaded");
-        logger.info("Dictionary loaded");
-        writeRecordKafka("testRecord");
+        try {
+            AvpDictionary.INSTANCE.parseDictionary(this.getClass().getClassLoader().getResourceAsStream("dictionary.xml"));
+            InfoDiameterRequest.initDictionary();
+            System.out.println("Dictionary loaded");
+            logger.info("Dictionary loaded");
+            writeRecordKafka("testRecord");
+        } catch (Exception e) {
+            logger.error("Dictionary loading failed");
+        }
     }
 
     @Override
@@ -130,5 +137,4 @@ public class Router implements NetworkReqListener {
 
         return answer;
     }
-
 }
