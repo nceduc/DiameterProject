@@ -15,7 +15,7 @@
       <Entry index="1" lowThreshold="0.5" highThreshold="0.6">
         <ApplicationID>
           <VendorId value="0" />
-          <AuthApplId value="333333" />
+          <AuthApplId value="33333" />
           <AcctApplId value="0" />
         </ApplicationID>
       </Entry>
@@ -57,7 +57,7 @@
       <Realm name="exchange.example.org" peers="127.0.0.1" local_action="LOCAL" dynamic="false" exp_time="1">
         <ApplicationID>
           <VendorId value="0" />
-          <AuthApplId value="333333" />
+          <AuthApplId value="33333" />
           <AcctApplId value="0" />
         </ApplicationID>
       </Realm>

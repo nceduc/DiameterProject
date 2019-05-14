@@ -3,10 +3,10 @@ function getBalance(){
         url: "/dashboard/getbal",
         dataType:"json",
         success: function (result) {
-            $("#resultBal").html(result["balance"]);
-            $('#resultTime').html(result["time"]);
+            $("#resultBal").html(result["response"]);
+            $('#resultTime').html(result["date"]);
         }
     });
 }
-getBalance(); //вызвали первый раз при загрузке страницы
+getBalance();
 setInterval(getBalance, 10000);
