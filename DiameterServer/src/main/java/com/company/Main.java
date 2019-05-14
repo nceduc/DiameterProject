@@ -16,8 +16,8 @@ public class Main {
 		JDiameterServer jDiameterServer = new JDiameterServer();
 		KafkaProcessor kafkaProcessor = new KafkaProcessor();
 
-		//t.scheduleAtFixedRate(new CheckActiveUser(), 0, 60000*60*24);
-		//t.scheduleAtFixedRate(new CheckFailApps(), 0, 1000);
+		t.scheduleAtFixedRate(new CheckActiveUser(), 0, 60000*60*24);
+		t.scheduleAtFixedRate(new CheckFailApps(), 0, 1000);
 		jDiameterServer.startServer();
 		kafkaProcessor.start();
 	}
