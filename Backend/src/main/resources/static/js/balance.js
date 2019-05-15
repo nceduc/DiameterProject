@@ -16,4 +16,4 @@ function getBalance(){
     });
 }
 getBalance();
-setInterval(getBalance, 10000);
+setInterval(getBalance, 5000);
