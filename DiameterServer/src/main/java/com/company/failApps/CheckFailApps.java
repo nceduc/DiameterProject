@@ -106,7 +106,7 @@ public class CheckFailApps extends TimerTask{
             exitCode = process.exitValue();
             process.destroy();
         } catch (IOException | InterruptedException e) {
-            logger.error("Some problems with execute Linux command");
+            logger.error("Some problems with execute Linux command: '"+command+"'");
         }
         return exitCode;
     }
