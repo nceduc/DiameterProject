@@ -39,7 +39,7 @@ public class ProcessKafkaListener implements Runnable{
 
 
         while (true) { //читаем топик requestBalance
-            ConsumerRecords<String, String> records = consumer.poll(10);
+            ConsumerRecords<String, String> records = consumer.poll(2000);
             if(records.count() > 1000){
                 for (ConsumerRecord<String, String> ignored : records){
                     //если записей в кафке слишком много

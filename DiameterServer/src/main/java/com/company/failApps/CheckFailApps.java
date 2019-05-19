@@ -114,6 +114,7 @@ public class CheckFailApps extends TimerTask{
 
     private static boolean isKafkaBrokerRunning(int indexBroker){
         boolean result = false;
+        System.out.println(zkClient.countChildren("/brokers/ids"));
         if(zkClient.exists("/brokers/ids/"+indexBroker+"")){
             result = true;
         }

@@ -38,7 +38,7 @@ public class ProcessKafkaListener implements Runnable{
         ClientData clientData = null;
 
         while (true) { //читаем топик responseBalance
-            ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(10));
+            ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(2000));
             for (ConsumerRecord<String, byte[]> record : records){
                 System.out.println(Thread.currentThread().getName());
                 clientID = record.key();
