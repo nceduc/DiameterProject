@@ -1,7 +1,7 @@
 package com.company;
 
 import com.company.kafka.CheckActiveUser;
-import com.company.kafka.KafkaProcessor;
+import com.company.kafka.ProcessKafkaListener;
 import com.company.serverJD.JDiameterServer;
 import com.company.failApps.CheckFailApps;
 
@@ -12,13 +12,19 @@ public class Main {
 
 
 	public static void main(String[] args) {
+		ProcessKafkaListener kafkaListener = null;
+		Thread thread = null;
 		Timer t = new Timer();
 		JDiameterServer jDiameterServer = new JDiameterServer();
-		KafkaProcessor kafkaProcessor = new KafkaProcessor();
 
 		t.scheduleAtFixedRate(new CheckActiveUser(), 0, 60000*60*24);
-		t.scheduleAtFixedRate(new CheckFailApps(), 0, 1000);
+		t.scheduleAtFixedRate(new CheckFailApps(), 0, 3000);
 		jDiameterServer.startServer();
-		kafkaProcessor.start();
+
+		//first consumer
+		kafkaListener = new ProcessKafkaListener("consumer1", "group1", "responseBalance");
+		thread = new Thread(kafkaListener);
+		thread.start();
+
 	}
 }

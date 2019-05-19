@@ -36,10 +36,15 @@ public class CheckFailApps extends TimerTask{
 
 
         if (failApps.isKafkaFail()) {
+            //Full reload
             //stop
-            execCommand("service kafka stop");
+            execCommand("service kafka1 stop");
+            execCommand("service kafka2 stop");
+            execCommand("service kafka3 stop");
             //start
-            execCommand("service kafka start");
+            execCommand("service kafka1 start");
+            execCommand("service kafka2 start");
+            execCommand("service kafka3 start");
 
             logger.warn("Try to reload Kafka");
             while(true){
@@ -47,9 +52,27 @@ public class CheckFailApps extends TimerTask{
                     break;
                 }
             }
-
             failApps.setKafkaFail(false);
         }
+
+        if(!isKafkaBrokerRunning(1)){
+            execCommand("service kafka1 stop");
+            execCommand("service kafka1 start");
+        }
+
+        if(!isKafkaBrokerRunning(2)){
+            execCommand("service kafka2 stop");
+            execCommand("service kafka2 start");
+        }
+
+        if(!isKafkaBrokerRunning(3)){
+            execCommand("service kafka3 stop");
+            execCommand("service kafka3 start");
+        }
+
+
+
+
 
         if(failApps.isCassandraFail()){
             //stop
@@ -89,10 +112,18 @@ public class CheckFailApps extends TimerTask{
     }
 
 
+    private static boolean isKafkaBrokerRunning(int indexBroker){
+        boolean result = false;
+        if(zkClient.exists("/brokers/ids/"+indexBroker+"")){
+            result = true;
+        }
+        return result;
+    }
+
+
     private static boolean isKafkaRunning(){
         boolean result = false;
-        int brokersCount = zkClient.countChildren("/brokers/ids");
-        if(brokersCount > 0){
+        if(isKafkaBrokerRunning(1) && isKafkaBrokerRunning(2) && isKafkaBrokerRunning(3)){
             result = true;
         }
         return result;

@@ -2,7 +2,7 @@ package com.company.serverJD;
 
 import com.company.failApps.FailApps;
 import com.company.kafka.ClientData;
-import com.company.kafka.KafkaProcessor;
+import com.company.kafka.ProcessKafkaListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
@@ -70,7 +70,7 @@ public class Router implements NetworkReqListener {
             }
 
 
-            clientData = KafkaProcessor.mapData.get(clientID);
+            clientData = ProcessKafkaListener.mapData.get(clientID);
             while (failApps.appsRunning()){
                 countKafkaRequest++;
 
@@ -83,7 +83,7 @@ public class Router implements NetworkReqListener {
                     if (!isClientNotFound) {
                         writeRecordKafka(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                     }
-                    clientData = KafkaProcessor.mapData.get(clientID);
+                    clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
                         break;
                     }

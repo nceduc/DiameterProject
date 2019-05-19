@@ -17,7 +17,7 @@ public class CheckActiveUser extends TimerTask{
 
     @Override
     public void run() {
-        Iterator<Map.Entry<String, ClientData>> it = KafkaProcessor.mapData.entrySet().iterator();
+        Iterator<Map.Entry<String, ClientData>> it = ProcessKafkaListener.mapData.entrySet().iterator();
         Date date = new Date();
         String clientID = null;
         long time = 0L;
