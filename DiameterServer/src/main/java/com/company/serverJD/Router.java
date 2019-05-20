@@ -2,13 +2,16 @@ package com.company.serverJD;
 
 import com.company.failApps.FailApps;
 import com.company.kafka.ClientData;
+import com.company.kafka.KafkaRequest;
 import com.company.kafka.ProcessKafkaListener;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jdiameter.api.*;
 import org.mobicents.diameter.dictionary.AvpDictionary;
+
 import java.util.Date;
-import static com.company.kafka.KafkaRequest.writeRecordKafka;
 
 public class Router implements NetworkReqListener {
 
@@ -23,7 +26,7 @@ public class Router implements NetworkReqListener {
             InfoDiameterRequest.initDictionary();
             System.out.println("Dictionary loaded");
             logger.info("Dictionary loaded");
-            writeRecordKafka("testRecord");
+            writeK("testRecord");
         } catch (Exception e) {
             logger.error("Dictionary loading failed");
         }
@@ -81,7 +84,7 @@ public class Router implements NetworkReqListener {
                         isClientNotFound = clientData.isClientNotFound();
                     }
                     if (!isClientNotFound) {
-                        writeRecordKafka(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
+                        writeK(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                     }
                     clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
@@ -136,5 +139,13 @@ public class Router implements NetworkReqListener {
         }
 
         return answer;
+    }
+
+
+    void writeK(String clientID){
+        KafkaProducer producer = KafkaRequest.getProp();
+
+                ProducerRecord producerRecord = new ProducerRecord("requestBalance", clientID);
+        producer.send(producerRecord); //пишем запись в кафку
     }
 }

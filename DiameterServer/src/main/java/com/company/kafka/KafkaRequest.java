@@ -13,7 +13,9 @@ public class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
 
-    public static void writeRecordKafka(String clientID){
+    public static KafkaProducer pr = null;
+
+    public static KafkaProducer getProp(){
         final String topicName = "requestBalance";
         boolean result = false;
         Properties props = null;
@@ -37,9 +39,10 @@ public class KafkaRequest {
                 "org.apache.kafka.common.serialization.StringSerializer");
 
 
-        producer = new KafkaProducer(props);
-        producerRecord = new ProducerRecord(topicName, clientID);
-        producer.send(producerRecord); //пишем запись в кафку
+        if(pr == null){
+            producer = new KafkaProducer(props);
+        }
+        return producer;
     }
 
 }
