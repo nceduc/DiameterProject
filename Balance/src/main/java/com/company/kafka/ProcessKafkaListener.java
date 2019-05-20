@@ -90,8 +90,7 @@ public class ProcessKafkaListener implements Runnable{
         byte[] value = serialize(clientData);
         ProducerRecord producerRecord = new ProducerRecord("responseBalance", clientID, value);
         producer.send(producerRecord);
-        producer=null;
-        System.gc();
+
     }
 
     private static Properties createConsumerConfig(String consumer, String group){
