@@ -41,6 +41,7 @@ public class ProcessKafkaListener implements Runnable{
         String clientID = null;
         String balance = null;
         boolean isClientNotFound = false;
+        KafkaRequest.setProperties();
         Balance balanceCassandra = new Balance(); //создали экземпляр и установили connection
 
 

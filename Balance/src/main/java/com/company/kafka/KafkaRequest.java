@@ -36,7 +36,7 @@ class KafkaRequest {
     }
 
     //set properties
-    private KafkaRequest(){
+    static void setProperties(){
         Properties props = null;
 
         // конфигурация

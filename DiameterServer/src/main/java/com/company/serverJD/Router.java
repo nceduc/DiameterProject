@@ -26,6 +26,7 @@ public class Router implements NetworkReqListener {
             InfoDiameterRequest.initDictionary();
             System.out.println("Dictionary loaded");
             logger.info("Dictionary loaded");
+            KafkaRequest.setProperties();
             KafkaRequest.writeRecord("testRecord");
         } catch (Exception e) {
             logger.error("Dictionary loading failed");

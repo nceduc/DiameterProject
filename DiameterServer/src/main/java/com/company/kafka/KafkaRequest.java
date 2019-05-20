@@ -22,9 +22,8 @@ public class KafkaRequest {
         kafkaProducer.send(producerRecord); //пишем запись в кафку
     }
 
-
     //set properties
-    private KafkaRequest(){
+    public static void setProperties(){
         Properties props = null;
 
         // конфигурация
