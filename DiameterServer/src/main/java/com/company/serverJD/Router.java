@@ -42,13 +42,14 @@ public class Router implements NetworkReqListener {
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
         int countKafkaRequest = 0;
-        final int LIMIT_REQUEST = 30000;
+        final int LIMIT_REQUEST = 600;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
         String clientID = null;
         String balance = null;
         boolean isClientNotFound = false;
+        boolean isSecondRequest = false;
         Date date = null;
         Answer answer = null;
         String message = null;
@@ -84,12 +85,14 @@ public class Router implements NetworkReqListener {
                     KafkaRequest.writeRecord(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                 }
 
-                while(true) {
+                while(CheckFailApps.isKafkaRunning()) {
                     System.out.println("Запрос номер: " + countKafkaRequest);
-                    //пишем запись в кафку до тех пор, пока не придет какое либо val
                     clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
                         break;
+                    }else if(!isSecondRequest){
+                        KafkaRequest.writeRecord(clientID);
+                        isSecondRequest = true;
                     }
                     if(countKafkaRequest > LIMIT_REQUEST){
                         logger.warn("Limit requests expired. App 'Balance' may be failed.");
