@@ -62,16 +62,16 @@ public class ProcessKafkaListener implements Runnable{
                         clientID = record.value(); // получаем клиентский ID
                         balance = balanceCassandra.getBalance(clientID); //получаем баланс
 
-//                        if (balance != null) {
-//                            isClientNotFound = false;
-//                        } else if (isCassandraRunning()) {
-//                            isClientNotFound = true;
-//                        } else {
-//                            connection = null;
-//                        }
+                        if (balance != null) {
+                            isClientNotFound = false;
+                        } else if (isCassandraRunning()) {
+                            isClientNotFound = true;
+                        } else {
+                            connection = null;
+                        }
 
 
-                        writeK(clientID, balance, isClientNotFound); //запись в кафку
+                        KafkaRequest.writeRecord(clientID, balance, isClientNotFound); //запись в кафку
 
                     } catch (NullPointerException e) {
                         logger.error("Balance or clientID was not got\n" + e.getMessage());
@@ -81,17 +81,6 @@ public class ProcessKafkaListener implements Runnable{
         }
     }
 
-    void writeK(String balance, String clientID, boolean isClientNotFound){
-        KafkaProducer producer = KafkaRequest.get();
-        ClientData clientData = new ClientData();
-        clientData.setBalance(balance);
-        clientData.setDate(new Date());
-        clientData.setClientNotFound(isClientNotFound);
-        byte[] value = serialize(clientData);
-        ProducerRecord producerRecord = new ProducerRecord("responseBalance", clientID, value);
-        producer.send(producerRecord);
-
-    }
 
     private static Properties createConsumerConfig(String consumer, String group){
         //конфигурация
@@ -111,19 +100,6 @@ public class ProcessKafkaListener implements Runnable{
         props.put("value.deserializer",
                 "org.apache.kafka.common.serialization.StringDeserializer");
         return props;
-    }
-
-    private static byte[] serialize(Object obj){
-        ByteArrayOutputStream array = null;
-        ObjectOutputStream objStream = null;
-        try{
-            array = new ByteArrayOutputStream();
-            objStream = new ObjectOutputStream(array);
-            objStream.writeObject(obj);
-        }catch (IOException ex){
-            logger.warn("Serialization failed [Balance]\n" + ex.getMessage());
-        }
-        return array.toByteArray();
     }
 
 }

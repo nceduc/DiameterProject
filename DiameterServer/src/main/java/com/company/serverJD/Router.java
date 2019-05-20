@@ -26,7 +26,7 @@ public class Router implements NetworkReqListener {
             InfoDiameterRequest.initDictionary();
             System.out.println("Dictionary loaded");
             logger.info("Dictionary loaded");
-            writeK("testRecord");
+            KafkaRequest.writeRecord("testRecord");
         } catch (Exception e) {
             logger.error("Dictionary loading failed");
         }
@@ -84,7 +84,7 @@ public class Router implements NetworkReqListener {
                         isClientNotFound = clientData.isClientNotFound();
                     }
                     if (!isClientNotFound) {
-                        writeK(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
+                        KafkaRequest.writeRecord(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                     }
                     clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
@@ -141,11 +141,4 @@ public class Router implements NetworkReqListener {
         return answer;
     }
 
-
-    void writeK(String clientID){
-        KafkaProducer producer = KafkaRequest.getProp();
-
-                ProducerRecord producerRecord = new ProducerRecord("requestBalance", clientID);
-        producer.send(producerRecord); //пишем запись в кафку
-    }
 }

@@ -13,36 +13,30 @@ public class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
 
-    public static KafkaProducer pr = null;
+    private static KafkaProducer kafkaProducer = null;
 
-    public static KafkaProducer getProp(){
+
+    public static void writeRecord(String clientID){
         final String topicName = "requestBalance";
-        boolean result = false;
+        ProducerRecord producerRecord = new ProducerRecord(topicName, clientID);
+        kafkaProducer.send(producerRecord); //пишем запись в кафку
+    }
+
+
+    //set properties
+    private KafkaRequest(){
         Properties props = null;
-        KafkaProducer producer = null;
-        ProducerRecord producerRecord = null;
 
-
-        //конфигурация
+        // конфигурация
         props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put("max.block.ms", 10000L);
-        props.put("acks", "all");
-        props.put("retries", 0);
-        props.put("batch.size", 16384);
-        props.put("linger.ms", 1);
-        props.put("buffer.memory", 33554432);
         //сериализуем
         props.put("key.serializer",
                 "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer",
                 "org.apache.kafka.common.serialization.StringSerializer");
 
-
-        if(pr == null){
-            producer = new KafkaProducer(props);
-        }
-        return producer;
+        kafkaProducer = new KafkaProducer(props);
     }
 
 }

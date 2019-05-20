@@ -16,15 +16,28 @@ class KafkaRequest {
 
     private static final Logger logger = LogManager.getLogger(KafkaRequest.class);
 
-    private static KafkaProducer k = null;
+    private static KafkaProducer kafkaProducer = null;
 
-    static KafkaProducer get(){
+
+    static void writeRecord(String balance, String clientID, boolean isClientNotFound){
         final String topicName = "responseBalance";
         byte[] value = null;
-        Properties props = null;
         ClientData clientData = null;
         ProducerRecord producerRecord = null;
 
+        clientData = new ClientData();
+        clientData.setBalance(balance);
+        clientData.setDate(new Date());
+        clientData.setClientNotFound(isClientNotFound);
+        value = serialize(clientData);
+        producerRecord = new ProducerRecord("responseBalance", clientID, value);
+        kafkaProducer.send(producerRecord);
+
+    }
+
+    //set properties
+    private KafkaRequest(){
+        Properties props = null;
 
         // конфигурация
         props = new Properties();
@@ -35,12 +48,7 @@ class KafkaRequest {
         props.put("value.serializer",
                 "org.apache.kafka.common.serialization.ByteArraySerializer");
 
-
-        if(k == null){
-
-            k = new KafkaProducer(props);
-        }
-        return k;
+        kafkaProducer = new KafkaProducer(props);
     }
 
 
@@ -56,5 +64,4 @@ class KafkaRequest {
         }
         return array.toByteArray();
     }
-
 }
