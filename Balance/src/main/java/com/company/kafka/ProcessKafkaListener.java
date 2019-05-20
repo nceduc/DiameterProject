@@ -5,11 +5,17 @@ import com.company.balance.Balance;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import scala.sys.Prop;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
 
 import static com.company.balance.Balance.*;
@@ -65,7 +71,7 @@ public class ProcessKafkaListener implements Runnable{
 //                        }
 
 
-                        KafkaRequest.writeRecordKafka(clientID, balance, isClientNotFound); //запись в кафку
+                        writeK(clientID, balance, isClientNotFound); //запись в кафку
 
                     } catch (NullPointerException e) {
                         logger.error("Balance or clientID was not got\n" + e.getMessage());
@@ -75,6 +81,18 @@ public class ProcessKafkaListener implements Runnable{
         }
     }
 
+    void writeK(String balance, String clientID, boolean isClientNotFound){
+        KafkaProducer producer = KafkaRequest.get();
+        ClientData clientData = new ClientData();
+        clientData.setBalance(balance);
+        clientData.setDate(new Date());
+        clientData.setClientNotFound(isClientNotFound);
+        byte[] value = serialize(clientData);
+        ProducerRecord producerRecord = new ProducerRecord("responseBalance", clientID, value);
+        producer.send(producerRecord);
+        producer=null;
+        System.gc();
+    }
 
     private static Properties createConsumerConfig(String consumer, String group){
         //конфигурация
@@ -96,5 +114,17 @@ public class ProcessKafkaListener implements Runnable{
         return props;
     }
 
+    private static byte[] serialize(Object obj){
+        ByteArrayOutputStream array = null;
+        ObjectOutputStream objStream = null;
+        try{
+            array = new ByteArrayOutputStream();
+            objStream = new ObjectOutputStream(array);
+            objStream.writeObject(obj);
+        }catch (IOException ex){
+            logger.warn("Serialization failed [Balance]\n" + ex.getMessage());
+        }
+        return array.toByteArray();
+    }
 
 }
