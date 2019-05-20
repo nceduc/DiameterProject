@@ -35,30 +35,6 @@ public class Balance {
     }
 
 
-    private String selectDB(String clientID){
-        String answer = null;
-        BigDecimal balance = null;
-        final String query = "SELECT * from company.balance WHERE number = ?";
-        ResultSet resultSet = null;
-        Row row = null;
-        try {
-            if(connection == null){
-                connection = CassandraConnector.getInstance().connect();
-            }
-            resultSet = connection.execute(query, clientID);
-            row = resultSet.one();
-            balance = row.getDecimal("balance");
-        }
-        catch (Exception e){
-            logger.error("Error select balance from Cassandra" + e.getMessage());
-        }
-
-        if(balance != null){
-            answer = String.valueOf(balance);
-        }
-        return answer;
-    }
-
 
     public static boolean isCassandraRunning(){
         boolean result = false;

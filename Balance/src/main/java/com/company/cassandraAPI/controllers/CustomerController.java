@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Controller
 public class CustomerController {
-    public static CustomerService customerService;
+    private static CustomerService customerService;
 
     @Autowired
     public void setCustomerService(CustomerService customerService) {
