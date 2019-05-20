@@ -43,6 +43,8 @@ class KafkaRequest {
         value = serialize(clientData);
         producerRecord = new ProducerRecord(topicName, clientID, value);
         producer.send(producerRecord);
+        producer=null;
+        System.gc();
     }
 
 
