@@ -26,6 +26,7 @@ public class Balance {
 
     public String getBalance(String clientID){
         String balance = null;
+        System.out.println(clientID);
         try {
             balance = CustomerController.getBalance(clientID).toString();
         }catch (NullPointerException ex){

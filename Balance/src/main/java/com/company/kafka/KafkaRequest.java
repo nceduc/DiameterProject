@@ -19,18 +19,18 @@ class KafkaRequest {
     private static KafkaProducer kafkaProducer = null;
 
 
-    static void writeRecord(String balance, String clientID, boolean isClientNotFound){
+    static void writeRecord(String clientID, String balance, boolean isClientNotFound){
         final String topicName = "responseBalance";
         byte[] value = null;
         ClientData clientData = null;
         ProducerRecord producerRecord = null;
-
+        System.out.println(balance +" ****");
         clientData = new ClientData();
         clientData.setBalance(balance);
         clientData.setDate(new Date());
         clientData.setClientNotFound(isClientNotFound);
         value = serialize(clientData);
-        producerRecord = new ProducerRecord("responseBalance", clientID, value);
+        producerRecord = new ProducerRecord(topicName, clientID, value);
         kafkaProducer.send(producerRecord);
 
     }

@@ -71,7 +71,6 @@ public class ProcessKafkaListener implements Runnable{
                             connection = null;
                         }
 
-
                         KafkaRequest.writeRecord(clientID, balance, isClientNotFound); //запись в кафку
 
                     } catch (NullPointerException e) {

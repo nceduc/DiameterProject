@@ -20,6 +20,7 @@ public class KafkaRequest {
         final String topicName = "requestBalance";
         ProducerRecord producerRecord = new ProducerRecord(topicName, clientID);
         kafkaProducer.send(producerRecord); //пишем запись в кафку
+        System.out.println(clientID);
     }
 
     //set properties
