@@ -56,13 +56,13 @@ public class ProcessKafkaListener implements Runnable{
                         clientID = record.value(); // получаем клиентский ID
                         balance = balanceCassandra.getBalance(clientID); //получаем баланс
 
-                        if (balance != null) {
-                            isClientNotFound = false;
-                        } else if (isCassandraRunning()) {
-                            isClientNotFound = true;
-                        } else {
-                            connection = null;
-                        }
+//                        if (balance != null) {
+//                            isClientNotFound = false;
+//                        } else if (isCassandraRunning()) {
+//                            isClientNotFound = true;
+//                        } else {
+//                            connection = null;
+//                        }
 
 
                         KafkaRequest.writeRecordKafka(clientID, balance, isClientNotFound); //запись в кафку
