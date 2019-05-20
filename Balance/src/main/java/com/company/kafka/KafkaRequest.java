@@ -20,7 +20,6 @@ class KafkaRequest {
 
 
     static void writeRecord(String clientID, String balance, boolean isClientNotFound){
-        setProperties();
         final String topicName = "responseBalance";
         byte[] value = null;
         ClientData clientData = null;

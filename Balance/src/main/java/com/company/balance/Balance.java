@@ -36,7 +36,6 @@ public class Balance {
     }
 
 
-
     public static boolean isCassandraRunning(){
         boolean result = false;
         final String query = "SELECT now() FROM system.local"; //test query

@@ -42,7 +42,7 @@ public class Router implements NetworkReqListener {
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
         int countKafkaRequest = 0;
-        final int LIMIT_REQUEST = 50;
+        final int LIMIT_REQUEST = 30000;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
@@ -76,26 +76,26 @@ public class Router implements NetworkReqListener {
 
 
             clientData = ProcessKafkaListener.mapData.get(clientID);
-            while (failApps.appsRunning()){
-                countKafkaRequest++;
-                if(countKafkaRequest < LIMIT_REQUEST) {
+            if (failApps.appsRunning()){
+                if (clientData != null) {
+                    isClientNotFound = clientData.isClientNotFound();
+                }
+                if (!isClientNotFound && CheckFailApps.isKafkaRunning()) {
+                    KafkaRequest.writeRecord(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
+                }
+
+                while(true) {
                     System.out.println("Запрос номер: " + countKafkaRequest);
                     //пишем запись в кафку до тех пор, пока не придет какое либо val
-                    if (clientData != null) {
-                        isClientNotFound = clientData.isClientNotFound();
-                    }
-                    if (!isClientNotFound && CheckFailApps.isKafkaRunning()) {
-                        KafkaRequest.writeRecord(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
-                    }
-
                     clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
                         break;
                     }
-                } else{
-                    //если превышен лимит запросов
-                    logger.warn("Limit requests expired. App 'Balance' may be failed.");
-                    break;
+                    if(countKafkaRequest > LIMIT_REQUEST){
+                        logger.warn("Limit requests expired. App 'Balance' may be failed.");
+                        break;
+                    }
+                    countKafkaRequest++;
                 }
             }
 

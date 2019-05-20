@@ -17,8 +17,8 @@ public class Main {
 		Timer t = new Timer();
 		JDiameterServer jDiameterServer = new JDiameterServer();
 
-		t.scheduleAtFixedRate(new CheckActiveUser(), 0, 60000*60*24);
-		t.scheduleAtFixedRate(new CheckFailApps(), 0, 3000);
+		//t.scheduleAtFixedRate(new CheckActiveUser(), 0, 60000*60*24);
+		//t.scheduleAtFixedRate(new CheckFailApps(), 0, 3000);
 		jDiameterServer.startServer();
 
 		//first consumer
