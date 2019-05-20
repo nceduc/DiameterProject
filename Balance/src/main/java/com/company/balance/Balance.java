@@ -1,5 +1,6 @@
 package com.company.balance;
 
+import com.company.cassandraAPI.controllers.CustomerController;
 import com.company.cassandraAPI.domain.Customer;
 import com.company.cassandraAPI.repositories.CustomerRepository;
 import com.company.cassandraAPI.services.CustomerService;
@@ -10,26 +11,23 @@ import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.Bidi;
 import java.util.List;
 import java.util.Optional;
 
-public class Balance{
+public class Balance {
 
     private static Logger logger = LogManager.getLogger(Balance.class);
-    private CustomerService customerService;
     public static Session connection = CassandraConnector.getInstance().connect(); //connection with Cassandra
 
-    @Autowired
-    public void setCustomerService(CustomerService customerService) {
-        this.customerService = customerService;
-    }
 
     public String getBalance(String clientID){
         String balance = null;
         try {
-            balance = getBalanceDB(clientID).toString(); //олучаем баланс
+            balance = CustomerController.getBalance(clientID).toString();
         }catch (NullPointerException ex){
             logger.error("There isn't balance for the clientID");
         }
@@ -79,14 +77,6 @@ public class Balance{
     }
 
 
-    private BigDecimal getBalanceDB(String number) {
-        BigDecimal balance = null;
-        Optional<Customer> data = customerService.getByNumber(number);
-        if (data.isPresent()) {
-            balance = data.get().getBalance();
-        }
-        return balance;
-    }
 
 
 }

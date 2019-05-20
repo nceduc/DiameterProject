@@ -22,6 +22,7 @@ public class CheckFailApps extends TimerTask{
 
     @Override
     public void run() {
+        System.out.println(zkClient.countChildren("/brokers/ids"));
         if(!isKafkaRunning()) {
             //если кафка не работает
             logger.error("Kafka failed. Restart...");
@@ -114,7 +115,6 @@ public class CheckFailApps extends TimerTask{
 
     private static boolean isKafkaBrokerRunning(int indexBroker){
         boolean result = false;
-        System.out.println(zkClient.countChildren("/brokers/ids"));
         if(zkClient.exists("/brokers/ids/"+indexBroker+"")){
             result = true;
         }

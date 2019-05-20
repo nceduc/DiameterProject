@@ -15,8 +15,7 @@ import java.util.Optional;
 
 @Controller
 public class CustomerController {
-    private CustomerService customerService;
-
+    public static CustomerService customerService;
 
     @Autowired
     public void setCustomerService(CustomerService customerService) {
@@ -36,12 +35,13 @@ public class CustomerController {
 
     @RequestMapping(value = "/customers/show/{number}", method = RequestMethod.GET)
     @ResponseBody
-    public BigDecimal getBalance(@PathVariable String number) {
+    public static BigDecimal getBalance(@PathVariable String number) {
+        BigDecimal balance = null;
         Optional<Customer> answ = customerService.getByNumber(number);
-        if (!answ.isPresent()) {
-            throw new CustomerNotExistException();
+        if (answ.isPresent()) {
+            balance = answ.get().getBalance();
         }
-            return answ.get().getBalance();
+        return balance;
     }
 
     @RequestMapping(value = "/customers/auth/{number}", method = RequestMethod.GET)
@@ -95,4 +95,5 @@ public class CustomerController {
         }
         customerService.delete(number);
     }
+
 }
