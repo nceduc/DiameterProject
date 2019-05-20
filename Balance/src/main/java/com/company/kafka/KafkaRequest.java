@@ -20,11 +20,12 @@ class KafkaRequest {
 
 
     static void writeRecord(String clientID, String balance, boolean isClientNotFound){
+        setProperties();
         final String topicName = "responseBalance";
         byte[] value = null;
         ClientData clientData = null;
         ProducerRecord producerRecord = null;
-        System.out.println(balance +" ****");
+
         clientData = new ClientData();
         clientData.setBalance(balance);
         clientData.setDate(new Date());
@@ -32,7 +33,6 @@ class KafkaRequest {
         value = serialize(clientData);
         producerRecord = new ProducerRecord(topicName, clientID, value);
         kafkaProducer.send(producerRecord);
-
     }
 
     //set properties

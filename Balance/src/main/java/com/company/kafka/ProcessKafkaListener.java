@@ -33,6 +33,7 @@ public class ProcessKafkaListener implements Runnable{
         this.consumer.subscribe(Arrays.asList(topic));
         logger.info("Subscribed to topic: " + topic + " [Balance]");
         System.out.println("Subscribed to topic: " + topic);
+        KafkaRequest.setProperties();
     }
 
 
@@ -41,7 +42,6 @@ public class ProcessKafkaListener implements Runnable{
         String clientID = null;
         String balance = null;
         boolean isClientNotFound = false;
-        KafkaRequest.setProperties();
         Balance balanceCassandra = new Balance(); //создали экземпляр и установили connection
 
 

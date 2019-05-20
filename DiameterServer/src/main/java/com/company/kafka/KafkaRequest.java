@@ -17,10 +17,10 @@ public class KafkaRequest {
 
 
     public static void writeRecord(String clientID){
+        setProperties();
         final String topicName = "requestBalance";
         ProducerRecord producerRecord = new ProducerRecord(topicName, clientID);
         kafkaProducer.send(producerRecord); //пишем запись в кафку
-        System.out.println(clientID);
     }
 
     //set properties
@@ -35,7 +35,6 @@ public class KafkaRequest {
                 "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer",
                 "org.apache.kafka.common.serialization.StringSerializer");
-
         kafkaProducer = new KafkaProducer(props);
     }
 

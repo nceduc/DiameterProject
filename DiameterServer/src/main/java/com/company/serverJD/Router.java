@@ -1,5 +1,6 @@
 package com.company.serverJD;
 
+import com.company.failApps.CheckFailApps;
 import com.company.failApps.FailApps;
 import com.company.kafka.ClientData;
 import com.company.kafka.KafkaRequest;
@@ -41,7 +42,7 @@ public class Router implements NetworkReqListener {
         long codeDiameterAppId = 0L;
         int codeDiameterRequest = 0;
         int countKafkaRequest = 0;
-        final int LIMIT_REQUEST = 30;
+        final int LIMIT_REQUEST = 50;
         String appName = null;
         String requestName = null;
         ClientData clientData = null;
@@ -77,16 +78,16 @@ public class Router implements NetworkReqListener {
             clientData = ProcessKafkaListener.mapData.get(clientID);
             while (failApps.appsRunning()){
                 countKafkaRequest++;
-
                 if(countKafkaRequest < LIMIT_REQUEST) {
                     System.out.println("Запрос номер: " + countKafkaRequest);
                     //пишем запись в кафку до тех пор, пока не придет какое либо val
                     if (clientData != null) {
                         isClientNotFound = clientData.isClientNotFound();
                     }
-                    if (!isClientNotFound) {
+                    if (!isClientNotFound && CheckFailApps.isKafkaRunning()) {
                         KafkaRequest.writeRecord(clientID); //не пишем в кафку, если юзер не зарегестрирован в системе
                     }
+
                     clientData = ProcessKafkaListener.mapData.get(clientID);
                     if (clientData != null) {
                         break;

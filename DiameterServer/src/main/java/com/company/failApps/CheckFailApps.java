@@ -122,9 +122,9 @@ public class CheckFailApps extends TimerTask{
     }
 
 
-    private static boolean isKafkaRunning(){
+    public static boolean isKafkaRunning(){
         boolean result = false;
-        if(isKafkaBrokerRunning(1) && isKafkaBrokerRunning(2) && isKafkaBrokerRunning(3)){
+        if(isKafkaBrokerRunning(1) || isKafkaBrokerRunning(2) || isKafkaBrokerRunning(3)){
             result = true;
         }
         return result;
